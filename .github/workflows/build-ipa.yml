@@ -9,6 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Pruebas de la lógica pura (swift test)
+        run: swift test
+
       - name: Archivos del repositorio
         run: |
           pwd
