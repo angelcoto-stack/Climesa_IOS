@@ -1,0 +1,352 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01F6C46F51EDF8DE2715C2B8 /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D9A9BF52AB6DDA1845697 /* LabView.swift */; };
+		06F12F930C72D91C4AF1DBA0 /* AmbulanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */; };
+		2F62E1F8BC117893AEC63B41 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0DCAA17C3A5A8C895863B5 /* AuthViewModel.swift */; };
+		41DB57EA9EC7B1F934CF5361 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB414398E74C92C54D19BA0 /* MainView.swift */; };
+		4D8FEC36D65DE5164ED016D0 /* RoomsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072D11C7E2D412DDAFBC5486 /* RoomsView.swift */; };
+		50DCC144C7CFB6D6A1952949 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A6592E1D4F178A39E8D621 /* Models.swift */; };
+		6A0A9BFDDEC7085A7705A71E /* ClimesaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA95DF552D6489593ACC563 /* ClimesaApp.swift */; };
+		7394247A45FFCB6BB7247536 /* ShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C333420FA6B74B1C29F16 /* ShiftsView.swift */; };
+		ACE7938021505DBC755968B0 /* ConsultationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */; };
+		AEECCF317F1EB52A40AFF4A6 /* HospitalBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */; };
+		BD767B8681E0EBB79F05C359 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E07038EC71B3E6F0E81A7 /* AuthViews.swift */; };
+		CC0871B228B2C0D984DB173B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77D062B667B6DDC3C8C6302 /* Theme.swift */; };
+		F9F11A914593DAB2DF01559C /* ShellViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31354870C18B708AB8BD5A5 /* ShellViews.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		072D11C7E2D412DDAFBC5486 /* RoomsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsView.swift; sourceTree = "<group>"; };
+		07A6592E1D4F178A39E8D621 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		0CA95DF552D6489593ACC563 /* ClimesaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClimesaApp.swift; sourceTree = "<group>"; };
+		1A5E07038EC71B3E6F0E81A7 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
+		2EB414398E74C92C54D19BA0 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
+		730C333420FA6B74B1C29F16 /* ShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftsView.swift; sourceTree = "<group>"; };
+		B60D9A9BF52AB6DDA1845697 /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
+		CD0DCAA17C3A5A8C895863B5 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
+		D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbulanceView.swift; sourceTree = "<group>"; };
+		D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HospitalBackend.swift; sourceTree = "<group>"; };
+		D77D062B667B6DDC3C8C6302 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		DE2F71A8127D372B3B4FF030 /* Climesa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Climesa.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E31354870C18B708AB8BD5A5 /* ShellViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellViews.swift; sourceTree = "<group>"; };
+		EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		291156EABC2D3003DF52008E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		26B5B54969B86F4AC480309D /* App */ = {
+			isa = PBXGroup;
+			children = (
+				0CA95DF552D6489593ACC563 /* ClimesaApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5DC2DE2CF5E6812244FC855F /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				CD0DCAA17C3A5A8C895863B5 /* AuthViewModel.swift */,
+				1A5E07038EC71B3E6F0E81A7 /* AuthViews.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+		3AF9A394DA740BDADF06148C /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				D77D062B667B6DDC3C8C6302 /* Theme.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		EF7FA5A8EF72943501BCE2AA /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */,
+				EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */,
+				B60D9A9BF52AB6DDA1845697 /* LabView.swift */,
+				2EB414398E74C92C54D19BA0 /* MainView.swift */,
+				072D11C7E2D412DDAFBC5486 /* RoomsView.swift */,
+				730C333420FA6B74B1C29F16 /* ShiftsView.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		9EC242A4E88F809E71A4239B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				07A6592E1D4F178A39E8D621 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		BE6CF8D6CCA50C6B2F075564 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3B72A5766D2AF0434CB8C3CE /* Shell */ = {
+			isa = PBXGroup;
+			children = (
+				E31354870C18B708AB8BD5A5 /* ShellViews.swift */,
+			);
+			path = Shell;
+			sourceTree = "<group>";
+		};
+		B351C7EE3A60B38CE5B01425 /* Climesa */ = {
+			isa = PBXGroup;
+			children = (
+				26B5B54969B86F4AC480309D /* App */,
+				5DC2DE2CF5E6812244FC855F /* Auth */,
+				3AF9A394DA740BDADF06148C /* Core */,
+				EF7FA5A8EF72943501BCE2AA /* Features */,
+				9EC242A4E88F809E71A4239B /* Models */,
+				BE6CF8D6CCA50C6B2F075564 /* Services */,
+				3B72A5766D2AF0434CB8C3CE /* Shell */,
+			);
+			path = Climesa;
+			sourceTree = "<group>";
+		};
+		11B3DB7087E57226C81161C2 = {
+			isa = PBXGroup;
+			children = (
+				B351C7EE3A60B38CE5B01425 /* Climesa */,
+				B81B6FE32011A73BC9BFBB44 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B81B6FE32011A73BC9BFBB44 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DE2F71A8127D372B3B4FF030 /* Climesa.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8525EB42933B717A319EDBE9 /* Climesa */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FD539A6C434641D84B1E7D4D /* Build configuration list for PBXNativeTarget "Climesa" */;
+			buildPhases = (
+				1CFBD3F125FBE7B6258BEBB2 /* Sources */,
+				291156EABC2D3003DF52008E /* Frameworks */,
+				356F1773DD2273EBFA0A504A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Climesa;
+			productName = Climesa;
+			productReference = DE2F71A8127D372B3B4FF030 /* Climesa.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		C2EBBAD75BDE9A5BB27DA344 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					8525EB42933B717A319EDBE9 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = B346AD8B45DDC51E17606F1A /* Build configuration list for PBXProject "Climesa" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = es;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				es,
+				Base,
+			);
+			mainGroup = 11B3DB7087E57226C81161C2;
+			productRefGroup = B81B6FE32011A73BC9BFBB44 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8525EB42933B717A319EDBE9 /* Climesa */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		356F1773DD2273EBFA0A504A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1CFBD3F125FBE7B6258BEBB2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6A0A9BFDDEC7085A7705A71E /* ClimesaApp.swift in Sources */,
+				2F62E1F8BC117893AEC63B41 /* AuthViewModel.swift in Sources */,
+				BD767B8681E0EBB79F05C359 /* AuthViews.swift in Sources */,
+				CC0871B228B2C0D984DB173B /* Theme.swift in Sources */,
+				06F12F930C72D91C4AF1DBA0 /* AmbulanceView.swift in Sources */,
+				ACE7938021505DBC755968B0 /* ConsultationView.swift in Sources */,
+				01F6C46F51EDF8DE2715C2B8 /* LabView.swift in Sources */,
+				41DB57EA9EC7B1F934CF5361 /* MainView.swift in Sources */,
+				4D8FEC36D65DE5164ED016D0 /* RoomsView.swift in Sources */,
+				7394247A45FFCB6BB7247536 /* ShiftsView.swift in Sources */,
+				50DCC144C7CFB6D6A1952949 /* Models.swift in Sources */,
+				AEECCF317F1EB52A40AFF4A6 /* HospitalBackend.swift in Sources */,
+				F9F11A914593DAB2DF01559C /* ShellViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E466F7E9CB0551EC87B91126 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		B5322013BEC1118163161388 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				SDKROOT = iphoneos;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9AE173AD6F29A3CA9C3B7B7B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Climesa;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.climesa.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		80168E87C85EB8B8EBE51479 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Climesa;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = edu.climesa.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		B346AD8B45DDC51E17606F1A /* Build configuration list for PBXProject "Climesa" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E466F7E9CB0551EC87B91126 /* Debug */,
+				B5322013BEC1118163161388 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FD539A6C434641D84B1E7D4D /* Build configuration list for PBXNativeTarget "Climesa" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9AE173AD6F29A3CA9C3B7B7B /* Debug */,
+				80168E87C85EB8B8EBE51479 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = C2EBBAD75BDE9A5BB27DA344 /* Project object */;
+}
