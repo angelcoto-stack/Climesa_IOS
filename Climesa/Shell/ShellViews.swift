@@ -1,53 +1,39 @@
 import SwiftUI
 
-/// Interruptores de entrega. Los módulos clínicos ya existen (ConsultationView, LabView),
-/// pero el diseño los marca como "próxima entrega"; ponlo en `true` para activarlos.
-enum FeatureFlags {
-    static let clinicalModulesEnabled = false
-}
-
-enum ShellTab: Hashable {
-    case home, consult, shifts, appointments, results, account
-
-    var icon: String {
-        switch self {
-        case .home: return "house"
-        case .consult, .results: return "list.bullet"
-        case .shifts, .appointments: return "calendar"
-        case .account: return "person"
-        }
-    }
-
-    func title(in area: Area) -> String {
-        switch self {
-        case .home: return "Inicio"
-        case .consult: return "Consultas"
-        case .shifts: return "Mis turnos"
-        case .appointments: return "Citas"
-        case .results: return "Resultados"
-        case .account: return "Mi cuenta"
-        }
-    }
-
-    static func tabs(for area: Area) -> [ShellTab] {
-        area == .med ? [.home, .consult, .shifts, .account] : [.home, .appointments, .results, .account]
-    }
+extension AppTab {
+    /// Título visible de la pestaña (clave `tab.*` de Localizable.xcstrings).
+    var title: String { L.text(titleKey) }
 }
 
 // MARK: - Raíz del shell (iOS / MED / … e iOS / PAC / …)
 
+/// Pestañas por rol y permisos (`TabPolicy`), banda de conexión en vivo y tiempo real sin sondeo.
 struct ShellRoot: View {
     let user: UserProfile
+    @EnvironmentObject var auth: AuthViewModel
     @State private var area: Area
-    @State private var tab: ShellTab = .home
+    @State private var tab: AppTab
+    @StateObject private var live = LiveViewModel()
+    @StateObject private var shifts: MyShiftsViewModel
 
-    private var areaKey: String { "climesa.area.\(user.id.uuidString)" }
+    private var areaKey: String { "climesa.area.\(user.id)" }
 
-    init(user: UserProfile) {
+    init(user: UserProfile, services: ClientServices?) {
         self.user = user
-        let saved = UserDefaults.standard.string(forKey: "climesa.area.\(user.id.uuidString)")
-        _area = State(initialValue: user.areas.first { $0.rawValue == saved } ?? user.areas.first ?? .med)
+        let saved = UserDefaults.standard.string(forKey: "climesa.area.\(user.id)")
+        let initial = user.areas.first { $0.rawValue == saved } ?? user.areas.first ?? .med
+        _area = State(initialValue: initial)
+        _tab = State(initialValue: ShellRoot.tabs(for: user, area: initial).first ?? .perfil)
+        _shifts = StateObject(wrappedValue: MyShiftsViewModel(api: services?.api))
     }
+
+    /// Pestañas del rol elegido, ya filtradas por los permisos del perfil verificado.
+    private static func tabs(for user: UserProfile, area: Area) -> [AppTab] {
+        if case let .tabs(_, tabs) = TabPolicy.decide(user.access, preferredRole: area.rawValue) { return tabs }
+        return []
+    }
+
+    private var tabs: [AppTab] { ShellRoot.tabs(for: user, area: area) }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -59,10 +45,12 @@ struct ShellRoot: View {
                 .frame(height: 44)
                 .background(Theme.background)
 
+            ConnectionBanner(state: live.snapshot.connection)
+
             TabView(selection: $tab) {
-                ForEach(ShellTab.tabs(for: area), id: \.self) { t in
+                ForEach(tabs, id: \.self) { t in
                     content(for: t)
-                        .tabItem { Label(t.title(in: area), systemImage: t.icon) }
+                        .tabItem { Label(t.title, systemImage: t.symbol) }
                         .tag(t)
                 }
             }
@@ -72,29 +60,57 @@ struct ShellRoot: View {
         .background(Theme.background.ignoresSafeArea())
         .environment(\.colorScheme, .light)
         .onChange(of: area) { newArea in
-            tab = .home
+            tab = ShellRoot.tabs(for: user, area: newArea).first ?? .perfil
             UserDefaults.standard.set(newArea.rawValue, forKey: areaKey)
+        }
+        .onChange(of: tabs) { newTabs in
+            // Un cambio de permisos puede quitar la pestaña abierta.
+            if !newTabs.contains(tab) { tab = newTabs.first ?? .perfil }
+        }
+        .onChange(of: user.areas) { newAreas in
+            if !newAreas.contains(area), let first = newAreas.first { area = first }
+        }
+        // Tiempo real: se suscribe al entrar y la conexión se cierra al cancelar la tarea. No hay temporizadores de datos.
+        .task(id: user.channels) {
+            let service = await auth.makeRealtime()
+            await live.run(service: service, channels: user.channels)
+        }
+        // Un evento de cuentas (roles o permisos) obliga a verificar de nuevo el perfil.
+        .onChange(of: live.snapshot.profileVersion) { _ in
+            Task { _ = await auth.refreshAccess() }
         }
     }
 
     @ViewBuilder
-    private func content(for tab: ShellTab) -> some View {
+    private func content(for tab: AppTab) -> some View {
         switch tab {
-        case .home:
-            ShellHomeView(user: user, area: area) { self.tab = $0 }
-        case .consult:
-            if FeatureFlags.clinicalModulesEnabled { ConsultationView(user: user) }
-            else { ComingSoonView(label: "MEDICINA / CLIMESA", title: "Consultas.") }
-        case .shifts:
-            MyShiftsView(user: user)
-        case .appointments:
-            if FeatureFlags.clinicalModulesEnabled { ConsultationView(user: user) }
-            else { ComingSoonView(label: "PACIENTE / CLIMESA", title: "Citas.") }
-        case .results:
-            if FeatureFlags.clinicalModulesEnabled { LabView(user: user) }
-            else { ComingSoonView(label: "PACIENTE / CLIMESA", title: "Resultados.") }
-        case .account:
+        case .miDia, .inicio:
+            ShellHomeView(user: user, area: area, tabs: tabs) { self.tab = $0 }
+        case .turnos:
+            MyShiftsView(model: shifts, shiftsVersion: live.snapshot.shiftsVersion)
+        case .perfil, .mas:
             AccountView(user: user, area: $area)
+        default:
+            ComingSoonView(label: "\(area.title.uppercased()) / CLIMESA", title: tab.title + ".")
+        }
+    }
+}
+
+// MARK: - Conexión en vivo
+
+/// Aviso visible solo cuando el tiempo real no está conectado.
+struct ConnectionBanner: View {
+    let state: ConnectionState
+
+    var body: some View {
+        if state != .live {
+            Text(L.text(state == .offline ? "live.offline" : "live.reconnecting"))
+                .font(.system(size: 11.5))
+                .foregroundColor(state == .offline ? Theme.errorText : Theme.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(state == .offline ? Theme.errorBg : Theme.infoBg)
+                .accessibilityAddTraits(.updatesFrequently)
         }
     }
 }
@@ -104,10 +120,12 @@ struct ShellRoot: View {
 struct ShellHomeView: View {
     let user: UserProfile
     let area: Area
-    let navigate: (ShellTab) -> Void
+    let tabs: [AppTab]
+    let navigate: (AppTab) -> Void
 
-    private var links: [ShellTab] {
-        area == .med ? [.consult, .shifts, .account] : [.appointments, .results, .account]
+    private var links: [AppTab] {
+        let wanted: [AppTab] = area == .med ? [.pacientes, .turnos, .perfil] : [.citas, .examenes, .mas]
+        return wanted.filter { tabs.contains($0) }
     }
 
     var body: some View {
@@ -129,7 +147,7 @@ struct ShellHomeView: View {
                 ForEach(links, id: \.self) { link in
                     Button { navigate(link) } label: {
                         HStack {
-                            Text(link.title(in: area)).font(.system(size: 12.5)).foregroundColor(Theme.blue)
+                            Text(link.title).font(.system(size: 12.5)).foregroundColor(Theme.blue)
                             Spacer()
                             Image(systemName: "arrow.right").font(.system(size: 11, weight: .medium)).foregroundColor(Theme.blue)
                         }
@@ -176,34 +194,51 @@ struct ComingSoonView: View {
 
 // MARK: - Mis turnos (cargando · con datos · vacío · error)
 
+/// Lee GET /turnos/mios. Se vuelve a pedir solo al entrar y cuando llega un evento de turnos (sin sondeo).
 @MainActor
 final class MyShiftsViewModel: ObservableObject {
     enum Phase { case loading, loaded([ShiftOccurrence]), failed }
 
-    let user: UserProfile
-    private let backend = HospitalBackend.shared
+    private let api: APIClient?
     @Published var phase: Phase = .loading
 
-    init(user: UserProfile) { self.user = user }
+    init(api: APIClient?) { self.api = api }
+
+    var hasLoaded: Bool {
+        if case .loaded = phase { return true }
+        return false
+    }
+
+    /// Primera carga con indicador; las siguientes (por eventos) refrescan sin borrar lo que ya se ve.
+    func reload() async { await load(showSpinner: !hasLoaded) }
 
     func load(showSpinner: Bool = true) async {
+        guard let api else {
+            phase = .failed
+            return
+        }
         if showSpinner { phase = .loading }
         do {
-            phase = .loaded(try await backend.myShifts(for: user))
+            let rows = try await api.get("/turnos/mios", as: [TurnoAPI].self)
+            phase = .loaded(rows.map { ShiftOccurrence($0) })
+        } catch is CancellationError {
+            return
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch {
-            phase = .failed
+            // Si ya había datos se conservan; el error solo se muestra cuando no hay nada que enseñar.
+            if !hasLoaded { phase = .failed }
         }
     }
 }
 
 struct MyShiftsView: View {
-    @StateObject private var vm: MyShiftsViewModel
-
-    init(user: UserProfile) { _vm = StateObject(wrappedValue: MyShiftsViewModel(user: user)) }
+    @ObservedObject var model: MyShiftsViewModel
+    let shiftsVersion: Int
 
     var body: some View {
         Group {
-            switch vm.phase {
+            switch model.phase {
             case .loading:
                 VStack(alignment: .leading, spacing: 18) {
                     Image(systemName: "lock").font(.system(size: 28)).foregroundColor(Theme.blue)
@@ -217,7 +252,7 @@ struct MyShiftsView: View {
             case .failed:
                 VStack(alignment: .leading, spacing: 16) {
                     Banner(kind: .error, text: "No se pudo cargar la información. Revisa tu conexión e inténtalo de nuevo.")
-                    PrimaryButton(title: "Volver a intentar") { Task { await vm.load() } }
+                    PrimaryButton(title: "Volver a intentar") { Task { await model.load() } }
                     Spacer()
                 }
                 .padding(.horizontal, 24)
@@ -225,7 +260,7 @@ struct MyShiftsView: View {
 
             case .loaded(let items):
                 ScreenScaffold(label: "MEDICINA / CLIMESA", title: "Mis turnos.", titleSize: 30,
-                               refresh: { await vm.load(showSpinner: false) }) {
+                               refresh: { await model.load(showSpinner: false) }) {
                     if items.isEmpty {
                         Text("No tienes turnos publicados.")
                             .font(.system(size: 13)).foregroundColor(Theme.muted)
@@ -255,7 +290,8 @@ struct MyShiftsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.background)
-        .task { await vm.load() }
+        // Al entrar y cada vez que un evento de turnos (o una reconexión) sube el contador.
+        .task(id: shiftsVersion) { await model.reload() }
     }
 }
 
@@ -267,7 +303,6 @@ struct AccountView: View {
     @EnvironmentObject var auth: AuthViewModel
     @State private var isRefreshing = false
     @State private var notice: (text: String, isError: Bool)?
-    @AppStorage(HospitalBackend.offlineKey) private var simulateOffline = false
 
     var body: some View {
         ScreenScaffold(label: "\(area.title.uppercased()) / CLIMESA", title: "Mi cuenta.", titleSize: 30) {
@@ -281,7 +316,7 @@ struct AccountView: View {
                 Text(user.email)
                     .font(.system(size: 13)).foregroundColor(Theme.ink).padding(.top, 14)
                 Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 16)
-                Text("Roles: " + user.areas.map(\.code).joined(separator: ", "))
+                Text("Roles: " + user.roles.joined(separator: ", "))
                     .font(.system(size: 9.5, design: .monospaced)).foregroundColor(Theme.ink).padding(.top, 16)
                 Text("Tu cuenta es personal. Cierra sesión al terminar.")
                     .font(.system(size: 10.5)).foregroundColor(Theme.muted).padding(.top, 14)
@@ -327,13 +362,6 @@ struct AccountView: View {
 
             LinkButton(title: "Cerrar sesión") { auth.logout() }
                 .padding(.top, 18)
-
-            #if DEBUG
-            Toggle("Simular sin conexión (solo depuración)", isOn: $simulateOffline)
-                .font(.system(size: 11)).foregroundColor(Theme.muted)
-                .tint(Theme.blue)
-                .padding(.top, 24)
-            #endif
         }
     }
 }
