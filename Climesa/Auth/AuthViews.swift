@@ -3,26 +3,30 @@ import SwiftUI
 // MARK: - Raíz
 
 struct RootView: View {
-    @StateObject private var auth = AuthViewModel()
+    @EnvironmentObject var auth: AuthViewModel
 
-    /// Las cuentas con área Medicina/Paciente usan el shell claro del diseño nuevo.
-    private var usesShell: Bool {
-        if case .signedIn(let user) = auth.state { return user.usesShell }
-        return false
+    /// Las cuentas con rol Médico o Paciente con acceso a iOS (según la API) usan el shell claro.
+    /// Lo decide `TabPolicy` con el perfil verificado de /auth/me.
+    private var shellUser: UserProfile? {
+        guard case .signedIn(let user) = auth.state else { return nil }
+        switch TabPolicy.decide(user.access) {
+        case .tabs: return user
+        case .unsupportedRole: return nil
+        }
     }
 
     var body: some View {
         Group {
-            if case .signedIn(let user) = auth.state, user.usesShell {
-                ShellRoot(user: user)
+            if let user = shellUser {
+                ShellRoot(user: user, services: auth.services)
+                    .id(user.id)
             } else {
                 legacyContainer
             }
         }
         .background(Theme.background.ignoresSafeArea())
-        .environmentObject(auth)
         // Barra de estado: clara sobre el encabezado navy, oscura sobre el shell claro.
-        .preferredColorScheme(usesShell ? .light : .dark)
+        .preferredColorScheme(shellUser != nil ? .light : .dark)
         .task { await auth.restoreSession() }
     }
 
@@ -41,8 +45,9 @@ struct RootView: View {
                     ConnectionErrorView()
                 case .signedOut:
                     AuthFlowView()
-                case .signedIn(let user):
-                    MainView(user: user)
+                case .signedIn:
+                    // Solo llega aquí una cuenta cuyo rol no usa iOS (por ejemplo Recepción).
+                    UnsupportedRoleView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,23 +63,32 @@ struct AccountMenu: View {
     var body: some View {
         Menu {
             Text(user.name)
-            Text(user.role.title)
             Button(role: .destructive, action: onLogout) {
                 Label("Cerrar sesión", systemImage: "rectangle.portrait.and.arrow.right")
             }
         } label: {
-            HStack(spacing: 8) {
-                Text(user.role.title.uppercased())
-                    .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(Theme.lime)
-                Image(systemName: "person.crop.circle")
-                    .font(.system(size: 20))
-                    .foregroundColor(.white)
-            }
+            Image(systemName: "person.crop.circle")
+                .font(.system(size: 20))
+                .foregroundColor(.white)
         }
     }
 }
 
+/// Rol sin iOS (por ejemplo Recepción): solo puede salir.
+struct UnsupportedRoleView: View {
+    @EnvironmentObject var auth: AuthViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HeadlineText(text: L.text("unsupported.title")).padding(.top, 90)
+            BodyText(text: L.text("unsupported.body")).padding(.top, 24)
+            LinkButton(title: L.text("common.logout")) { auth.logout() }
+                .padding(.top, 28)
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+    }
+}
 // MARK: - Formularios de acceso
 
 struct AuthFlowView: View {

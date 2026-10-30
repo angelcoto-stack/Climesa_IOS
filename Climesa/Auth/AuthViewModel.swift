@@ -1,5 +1,7 @@
 import SwiftUI
 
+/// Estado de sesión de la app. Ingresa, registra y renueva con Supabase Auth (REST) y verifica
+/// el perfil, los permisos y las plataformas con GET /auth/me. La sesión vive en el Keychain.
 @MainActor
 final class AuthViewModel: ObservableObject {
     enum SessionState {
@@ -19,54 +21,93 @@ final class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var infoMessage: String?
 
-    private let backend = HospitalBackend.shared
-    private let sessionKey = "climesa.session.userId"
+    /// nil si falta o es inválida la configuración (Configuration.plist).
+    let services: ClientServices?
+    /// Sube al cerrar sesión para descartar respuestas de operaciones que quedaron en vuelo.
+    private var revision = 0
+
+    init() {
+        do {
+            services = ClientServices(config: try AppConfiguration.load())
+        } catch {
+            services = nil
+            errorMessage = error.localizedDescription
+        }
+    }
 
     // MARK: Sesión
 
     func restoreSession() async {
-        guard let raw = UserDefaults.standard.string(forKey: sessionKey),
-              let id = UUID(uuidString: raw) else {
-            state = .signedOut
+        guard let services else {
+            state = .connectionError
             return
         }
+        let stamp = revision
         state = .checking
         do {
-            if let profile = try await backend.validateSession(userId: id) {
-                state = .signedIn(profile)
-            } else {
-                clearSession()
+            guard try await services.auth.session() != nil else {
+                guard stamp == revision else { return }
+                state = .signedOut
+                return
+            }
+            let profile = try await loadProfile()
+            guard stamp == revision else { return }
+            state = .signedIn(profile)
+        } catch {
+            guard stamp == revision else { return }
+            await settleAfterFailure()
+        }
+    }
+
+    /// "Actualizar acceso": vuelve a verificar roles y permisos contra la API sin pasar por la pantalla de carga.
+    func refreshAccess() async -> Bool {
+        guard case .signedIn = state else { return false }
+        let stamp = revision
+        do {
+            let profile = try await loadProfile()
+            guard stamp == revision else { return false }
+            state = .signedIn(profile)
+            return true
+        } catch {
+            // Si la API cerró la sesión (401), la pantalla vuelve al ingreso; si solo falló la red, se conserva.
+            let stored = await hasSession()
+            if stamp == revision, !stored {
                 state = .signedOut
             }
-        } catch {
-            state = .connectionError
-        }
-    }
-
-    /// "Actualizar acceso": vuelve a validar la cuenta (roles y estado) contra el backend.
-    func refreshAccess() async -> Bool {
-        guard case .signedIn(let current) = state else { return false }
-        do {
-            if let profile = try await backend.validateSession(userId: current.id) {
-                state = .signedIn(profile)
-                return true
-            }
-            logout()
-            return false
-        } catch {
             return false
         }
     }
 
+    /// Cierra la sesión de inmediato en pantalla; el aviso a Supabase y el borrado del Keychain siguen en segundo plano.
     func logout() {
-        clearSession()
+        revision += 1
+        let auth = services?.auth
         resetFields()
         screen = .login
         state = .signedOut
+        Task { await auth?.signOut() }
     }
 
-    private func clearSession() {
-        UserDefaults.standard.removeObject(forKey: sessionKey)
+    private func loadProfile() async throws -> UserProfile {
+        guard let services else { throw ClientError.message("Falta configurar el servidor de Climesa.") }
+        let access = try await services.api.get("/auth/me", as: AccessProfile.self)
+        return UserProfile(access: access)
+    }
+
+    /// Tras un fallo de verificación: sin sesión guardada se vuelve al ingreso; con sesión, se ofrece reintentar.
+    private func settleAfterFailure() async {
+        let stored = await hasSession()
+        state = stored ? .connectionError : .signedOut
+    }
+
+    private func hasSession() async -> Bool {
+        guard let auth = services?.auth else { return false }
+        return (try? await auth.session()) != nil
+    }
+
+    private func message(for error: Error) -> String {
+        if error is URLError { return "Sin conexión. Revisa tu conexión e intenta de nuevo." }
+        return error.localizedDescription
     }
 
     // MARK: Navegación entre formularios
@@ -92,69 +133,74 @@ final class AuthViewModel: ObservableObject {
         errorMessage = nil
         infoMessage = nil
         guard !email.trimmed.isEmpty, !password.isEmpty else {
-            errorMessage = BackendError.invalidCredentials.errorDescription
+            errorMessage = "Escribe tu correo y tu contraseña."
             return
         }
+        guard let services else {
+            errorMessage = "Falta configurar el servidor de Climesa."
+            return
+        }
+        let stamp = revision
         isLoading = true
         defer { isLoading = false }
         do {
-            let profile = try await backend.login(email: email, password: password)
-            UserDefaults.standard.set(profile.id.uuidString, forKey: sessionKey)
+            try await services.auth.signIn(email: email, password: password)
+            let profile = try await loadProfile()
+            guard stamp == revision else { return }
             password = ""
             state = .signedIn(profile)
+        } catch is CancellationError {
+            return
         } catch {
-            errorMessage = error.localizedDescription
+            guard stamp == revision else { return }
+            errorMessage = message(for: error)
         }
     }
 
     // MARK: Registro
 
-    static func isStrongPassword(_ p: String) -> Bool {
-        p.count >= 8
-            && p.rangeOfCharacter(from: .uppercaseLetters) != nil
-            && p.rangeOfCharacter(from: .lowercaseLetters) != nil
-            && p.rangeOfCharacter(from: .decimalDigits) != nil
-            && p.rangeOfCharacter(from: CharacterSet.alphanumerics.inverted.subtracting(.whitespaces)) != nil
-    }
-
-    private static func isValidEmail(_ e: String) -> Bool {
-        let parts = e.split(separator: "@")
-        return parts.count == 2 && parts[1].contains(".") && !e.contains(" ")
-    }
-
     func register() async {
         errorMessage = nil
         infoMessage = nil
 
-        guard !name.trimmed.isEmpty else {
-            errorMessage = "Revisa los datos. Escribe tu nombre completo."
+        let problems = RegistrationRules.errors(name: name, email: email.trimmed, password: password, confirmation: confirm)
+        guard problems.isEmpty else {
+            errorMessage = "Revisa los datos. " + problems.joined(separator: " ")
             return
         }
-        guard Self.isValidEmail(email.trimmed) else {
-            errorMessage = "Revisa los datos. El correo no es válido."
-            return
-        }
-        guard password == confirm else {
-            errorMessage = "Revisa los datos. Las contraseñas deben coincidir."
-            return
-        }
-        guard Self.isStrongPassword(password) else {
-            errorMessage = "Revisa los datos. La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo."
+        guard let services else {
+            errorMessage = "Falta configurar el servidor de Climesa."
             return
         }
 
+        let stamp = revision
         isLoading = true
         defer { isLoading = false }
         do {
-            try await backend.register(name: name, email: email, password: password)
-            password = ""
-            confirm = ""
-            name = ""
-            screen = .login
-            infoMessage = "Revisa tu correo. Si necesitas confirmarlo, recibirás un enlace para activar tu cuenta."
+            let signedIn = try await services.auth.signUp(name: name, email: email, password: password)
+            guard stamp == revision else { return }
+            if signedIn {
+                let profile = try await loadProfile()
+                guard stamp == revision else { return }
+                clearRegistrationFields()
+                state = .signedIn(profile)
+            } else {
+                clearRegistrationFields()
+                screen = .login
+                infoMessage = "Revisa tu correo para confirmar tu cuenta. Después podrás ingresar."
+            }
+        } catch is CancellationError {
+            return
         } catch {
-            errorMessage = error.localizedDescription
+            guard stamp == revision else { return }
+            errorMessage = message(for: error)
         }
+    }
+
+    private func clearRegistrationFields() {
+        password = ""
+        confirm = ""
+        name = ""
     }
 
     private func resetFields() {
@@ -164,5 +210,37 @@ final class AuthViewModel: ObservableObject {
         confirm = ""
         errorMessage = nil
         infoMessage = nil
+    }
+
+    // MARK: Tiempo real
+
+    /// Servicio de tiempo real con el token vigente de la sesión. Los datos llegan empujados; tras una caída
+    /// hace UNA consulta de recuperación a /eventos?after= (no hay sondeo periódico).
+    func makeRealtime() -> (any RealtimeService)? {
+        guard let services else { return nil }
+        let auth = services.auth
+        let api = services.api
+        let url = RealtimeProtocol.websocketURL(supabaseURL: services.config.supabase.absoluteString,
+                                                publishableKey: services.config.publicKey)
+        return SupabaseRealtimeService(
+            websocketURL: url,
+            accessToken: { (try? await auth.session())?.access_token },
+            catchUp: { cursor in
+                let data = try await api.getData(RealtimeProtocol.catchUpPath(after: cursor))
+                guard let recovered = RealtimeProtocol.parseCatchUp(data: data) else {
+                    throw ClientError.message("No se pudo recuperar lo ocurrido sin conexión.")
+                }
+                return recovered
+            },
+            // Sin `after`, la API devuelve el cursor actual: es el punto de partida de la recuperación.
+            head: {
+                let data = try await api.getData("/eventos")
+                guard let current = RealtimeProtocol.parseCatchUp(data: data) else {
+                    throw ClientError.message("No se pudo leer el cursor de eventos.")
+                }
+                return current.cursor
+            },
+            sockets: URLSessionRealtimeSocketFactory()
+        )
     }
 }
