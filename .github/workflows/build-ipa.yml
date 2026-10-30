@@ -1,0 +1,40 @@
+name: Build IPA
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Archivos del repositorio
+        run: |
+          pwd
+          ls -la
+          ls -la Climesa || true
+
+      - name: Compilar y empaquetar .ipa (sin firmar)
+        run: |
+          PROJ=$(find . -name "Climesa.xcodeproj" -maxdepth 3 | head -n 1)
+          if [ -z "$PROJ" ]; then echo "No se encontró Climesa.xcodeproj"; exit 1; fi
+          DIR=$(dirname "$PROJ")
+          cd "$DIR"
+          xcodebuild \
+            -project Climesa.xcodeproj \
+            -scheme Climesa \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build
+          mkdir Payload
+          cp -R build/Build/Products/Release-iphoneos/Climesa.app Payload/
+          zip -qr Climesa.ipa Payload
+          echo "IPA_DIR=$DIR" >> "$GITHUB_ENV"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Climesa-ipa
+          path: ${{ env.IPA_DIR }}/Climesa.ipa
