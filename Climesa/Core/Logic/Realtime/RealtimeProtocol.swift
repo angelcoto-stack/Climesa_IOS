@@ -8,6 +8,13 @@ public enum RealtimeProtocol {
 
     public static func topic(_ channel: String) -> String { prefix + channel }
 
+    /// Canales a los que la app se une. `publico` es el de la pantalla sin sesión y la app no lo usa, así que se omite
+    /// (igual que web/src/lib/live.ts); se respeta el orden de /auth/me y se descartan los repetidos.
+    public static func subscribableChannels(_ channels: [String]) -> [String] {
+        var seen = Set<String>()
+        return channels.filter { $0 != publicChannel && seen.insert($0).inserted }
+    }
+
     public static func websocketURL(supabaseURL: String, publishableKey: String) -> String {
         var base = supabaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         while base.hasSuffix("/") { base.removeLast() }

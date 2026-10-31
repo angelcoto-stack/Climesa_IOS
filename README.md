@@ -26,7 +26,7 @@ El diseño visual (Theme, pantallas de acceso y shell con barra inferior) es el 
 | Banda de conexión | "Reconectando…" / "Sin conexión" según el estado del tiempo real |
 | Cierre por inactividad | Más de 5 minutos en segundo plano cierra la sesión (`ClimesaApp.swift`) |
 
-Médico ve: Mi día, Pacientes, Resultados, Turnos, Perfil. Paciente ve: Inicio, Fila, Citas, Exámenes, Más.
+Médico ve: Mi día, Pacientes, Resultados, Turnos, Perfil. Paciente ve: Inicio, Fila, Citas, Exámenes, Más. Cada pestaña con datos exige un permiso del catálogo (`pacientes.buscar`, `turnos.ver`, `fila.ver`, `citas.ver`, `resultados.ver`); sin él no aparece. La app no se une al canal `publico` de tiempo real.
 Solo **Turnos** y **Perfil/Más** tienen datos; el resto muestra "Este módulo todavía no está habilitado".
 Cualquier otro rol (por ejemplo Recepción) ve "Tu rol no usa esta aplicación" y solo puede cerrar sesión.
 
