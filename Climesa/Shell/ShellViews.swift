@@ -15,11 +15,13 @@ struct ShellRoot: View {
     @State private var tab: AppTab
     @StateObject private var live = LiveViewModel()
     @StateObject private var shifts: MyShiftsViewModel
+    private let api: APIClient?
 
     private var areaKey: String { "climesa.area.\(user.id)" }
 
     init(user: UserProfile, services: ClientServices?) {
         self.user = user
+        self.api = services?.api
         let saved = UserDefaults.standard.string(forKey: "climesa.area.\(user.id)")
         let initial = user.areas.first { $0.rawValue == saved } ?? user.areas.first ?? .med
         _area = State(initialValue: initial)
@@ -89,7 +91,11 @@ struct ShellRoot: View {
         case .turnos:
             MyShiftsView(model: shifts, shiftsVersion: live.snapshot.shiftsVersion)
         case .perfil, .mas:
-            AccountView(user: user, area: $area)
+            NavigationStack {
+                AccountView(user: user, area: $area,
+                            sections: TabPolicy.sections(for: user.access),
+                            api: api, liveVersion: live.snapshot.version)
+            }
         default:
             ComingSoonView(label: "\(area.title.uppercased()) / CLIMESA", title: tab.title + ".")
         }
@@ -309,6 +315,11 @@ struct MyShiftsView: View {
 struct AccountView: View {
     let user: UserProfile
     @Binding var area: Area
+    /// Secciones de gestión que el catálogo de permisos habilita para este perfil (puede ser ninguna).
+    let sections: [ManagementSection]
+    let api: APIClient?
+    /// Sube con cada evento en vivo; las secciones vuelven a pedir sus datos con él.
+    let liveVersion: Int
     @EnvironmentObject var auth: AuthViewModel
     @State private var isRefreshing = false
     @State private var notice: (text: String, isError: Bool)?
@@ -352,6 +363,20 @@ struct AccountView: View {
                 .background(Color(hex: 0xEFEDE8))
             }
 
+            if !sections.isEmpty {
+                SectionTitle(text: "Gestión")
+                VStack(spacing: 8) {
+                    ForEach(sections, id: \.self) { section in
+                        NavigationLink {
+                            ManagementDestination(section: section, user: user, api: api, liveVersion: liveVersion)
+                        } label: {
+                            ManagementRow(section: section)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
             Button {
                 Task {
                     isRefreshing = true
@@ -372,5 +397,6 @@ struct AccountView: View {
             LinkButton(title: "Cerrar sesión") { auth.logout() }
                 .padding(.top, 18)
         }
+        .toolbar(.hidden, for: .navigationBar)
     }
 }
