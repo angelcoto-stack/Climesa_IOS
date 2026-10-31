@@ -286,28 +286,6 @@ struct PlainField: View {
     }
 }
 
-struct PatientPickerRow: View {
-    let patients: [PatientSummary]
-    @Binding var selection: UUID?
-    var label = "Paciente"
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label).font(.system(size: 10.5)).foregroundColor(Theme.muted)
-            Picker(label, selection: $selection) {
-                Text("Selecciona un paciente").tag(UUID?.none)
-                ForEach(patients) { p in
-                    Text(p.name).tag(UUID?.some(p.id))
-                }
-            }
-            .pickerStyle(.menu)
-            .tint(Theme.blue)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            Rectangle().fill(Theme.line).frame(height: 1)
-        }
-        .padding(.vertical, 6)
-    }
-}
 
 // MARK: - Contenedores de pantalla
 

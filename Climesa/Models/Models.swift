@@ -6,66 +6,37 @@ extension String {
     var trimmed: String { trimmingCharacters(in: .whitespacesAndNewlines) }
 }
 
-// MARK: - Usuarios y roles
-
-enum Role: String, Codable, CaseIterable, Identifiable {
-    case administrador, doctor, recepcionista, asistente, paciente
-    var id: String { rawValue }
-
-    var title: String {
-        switch self {
-        case .administrador: return "Administrador"
-        case .doctor: return "Doctor"
-        case .recepcionista: return "Recepcionista"
-        case .asistente: return "Asistente"
-        case .paciente: return "Paciente"
-        }
-    }
-    var isStaff: Bool { self != .paciente }
+/// Textos de la interfaz que viven en Localizable.xcstrings (español como idioma base).
+enum L {
+    static func text(_ key: String) -> String { NSLocalizedString(key, comment: "") }
 }
 
+// MARK: - Áreas y perfil
+
 /// Áreas de la app con diseño propio (shell con barra inferior): Medicina y Paciente.
-enum Area: String, Codable, CaseIterable, Identifiable {
+/// El rawValue coincide con el código de rol que entrega /auth/me ("MED" y "PAC").
+enum Area: String, CaseIterable, Identifiable {
     case med = "MED", pac = "PAC"
     var id: String { rawValue }
     var code: String { rawValue }
     var title: String { self == .med ? "Medicina" : "Paciente" }
 }
 
-struct User: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var name: String
-    var email: String
-    var passwordHash: String
-    var role: Role
-    var isActive = true
-    /// Áreas adicionales a la que da el rol (p. ej. un médico que también es paciente).
-    var extraAreas: [Area] = []
+/// Lo único que la app conoce de la sesión: el perfil verificado por la API (/auth/me).
+struct UserProfile: Identifiable {
+    let access: AccessProfile
 
-    var areas: [Area] {
-        var list: [Area] = []
-        switch role {
-        case .doctor: list = [.med]
-        case .paciente: list = [.pac]
-        default: break
-        }
-        for a in extraAreas where !list.contains(a) { list.append(a) }
-        return list
-    }
+    var id: String { access.id }
+    var name: String { access.name }
+    var email: String { access.email }
+    var roles: [String] { access.roles }
+    var channels: [String] { access.channels }
 
-    var profile: UserProfile { UserProfile(id: id, name: name, email: email, role: role, areas: areas) }
-}
+    /// Roles con acceso a iOS (Médico y/o Paciente) según plataformas y permisos verificados.
+    var areas: [Area] { access.allowedIOSRoles.compactMap { Area(rawValue: $0) } }
 
-/// Lo único que la app conoce de la sesión (nunca el hash).
-struct UserProfile: Identifiable, Codable, Hashable {
-    let id: UUID
-    let name: String
-    let email: String
-    let role: Role
-    let areas: [Area]
-
-    /// Doctor y paciente usan el shell de las nuevas vistas; el resto de roles, el panel operativo.
-    var usesShell: Bool { !areas.isEmpty }
+    /// Si es falso, se muestra "Tu rol no usa esta aplicación".
+    var isSupported: Bool { !areas.isEmpty }
 
     var firstName: String {
         let parts = name.split(separator: " ").map(String.init)
@@ -74,233 +45,50 @@ struct UserProfile: Identifiable, Codable, Hashable {
     }
 }
 
-struct PatientSummary: Identifiable, Hashable {
-    let id: UUID
-    let name: String
-    let email: String
-    let roomId: String?
-}
+// MARK: - Turnos (GET /turnos/mios)
 
-// MARK: - Habitaciones
-
-enum RoomKind: String, Codable, CaseIterable {
-    case vip, semiprivada
-    var capacity: Int { self == .vip ? 1 : 2 }
-    var title: String { self == .vip ? "VIP · Individual" : "Semiprivada · 2 camas" }
-}
-
-struct Room: Identifiable, Codable, Hashable {
-    var id: String
-    var floor: Int
-    var kind: RoomKind
-    var occupantIds: [UUID]
-}
-
-struct OccupantInfo: Identifiable, Hashable {
-    var id: UUID { patientId }
-    let patientId: UUID
-    /// nil = dato protegido para quien consulta.
-    let name: String?
-}
-
-struct RoomInfo: Identifiable, Hashable {
+/// Fila tal como la entrega la API. Las fechas llegan en ISO 8601.
+struct TurnoAPI: Decodable, Identifiable {
     let id: String
-    let floor: Int
-    let kind: RoomKind
-    let occupants: [OccupantInfo]
-    var capacity: Int { kind.capacity }
-    var isFull: Bool { occupants.count >= capacity }
+    let area: String
+    let start: String
+    let end: String
+    let state: String
 }
 
-// MARK: - Laboratorio y consulta
-
-enum LabStatus: String, Codable {
-    case pendiente, enProceso, completado
-    var title: String {
-        switch self {
-        case .pendiente: return "Pendiente"
-        case .enProceso: return "En proceso"
-        case .completado: return "Completado"
-        }
-    }
-}
-
-struct LabOrder: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var patientId: UUID
-    var doctorId: UUID
-    var exam: String
-    var status: LabStatus
-    var result: String?
-    var createdAt: Date
-}
-
-struct LabInfo: Identifiable, Hashable {
-    var id: UUID { order.id }
-    let order: LabOrder
-    let patientName: String
-    let doctorName: String
-}
-
-struct Consultation: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var patientId: UUID
-    var doctorId: UUID
-    var diagnosis: String
-    var prescription: String
-    var date: Date
-}
-
-struct ConsultationInfo: Identifiable, Hashable {
-    var id: UUID { consultation.id }
-    let consultation: Consultation
-    let patientName: String
-    let doctorName: String
-}
-
-// MARK: - Turnos
-
-enum StaffTitle: String, Codable, CaseIterable, Identifiable {
-    case doctor, enfermera, alergista, emergencia, asistente, recepcionista
-    var id: String { rawValue }
-    var title: String {
-        switch self {
-        case .doctor: return "Doctor"
-        case .enfermera: return "Enfermera"
-        case .alergista: return "Alergista"
-        case .emergencia: return "Emergencia"
-        case .asistente: return "Asistente"
-        case .recepcionista: return "Recepcionista"
-        }
-    }
-}
-
-struct Shift: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var staffName: String
-    var title: StaffTitle
-    /// 0 = lunes … 6 = domingo
-    var weekday: Int
-    var startMinutes: Int
-    var endMinutes: Int
-    /// Nombre del servicio que se muestra en "Mis turnos".
-    var service: String = "Consulta general"
-    var published: Bool = true
-    /// Si existe, el turno pertenece a esa cuenta; si no, se asocia por nombre.
-    var userId: UUID? = nil
-
-    static let weekdayNames = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-
-    static func format(_ minutes: Int) -> String {
-        String(format: "%02d:%02d", minutes / 60, minutes % 60)
-    }
-    var range: String { "\(Shift.format(startMinutes)) – \(Shift.format(endMinutes))" }
-
-    func isOnDuty(at date: Date) -> Bool {
-        let cal = Calendar.current
-        let wd = (cal.component(.weekday, from: date) + 5) % 7
-        let now = cal.component(.hour, from: date) * 60 + cal.component(.minute, from: date)
-        if startMinutes < endMinutes {
-            return wd == weekday && now >= startMinutes && now < endMinutes
-        }
-        return (wd == weekday && now >= startMinutes) || (wd == (weekday + 1) % 7 && now < endMinutes)
-    }
-}
-
-/// Ocurrencia concreta (fecha y hora) de un turno semanal publicado.
-struct ShiftOccurrence: Identifiable, Hashable {
+/// Turno listo para mostrar en "Mis turnos".
+struct ShiftOccurrence: Identifiable {
     let id: String
     let service: String
-    let start: Date
-    let end: Date
+    let start: Date?
+    let end: Date?
     let published: Bool
 
     private static let formatter: DateFormatter = {
         let f = DateFormatter()
         f.locale = Locale(identifier: "es")
+        f.timeZone = TimeZone(identifier: "America/El_Salvador")
         f.dateFormat = "d 'de' MMMM 'de' yyyy, h:mm a"
         return f
     }()
 
-    var startText: String { Self.formatter.string(from: start) }
-    var endText: String { "Hasta " + Self.formatter.string(from: end) }
-}
-
-// MARK: - Ambulancia (recurso único)
-
-enum AmbulanceState: String, Codable {
-    case disponible, enServicio, enMantenimiento
-    var title: String {
-        switch self {
-        case .disponible: return "Disponible"
-        case .enServicio: return "En servicio"
-        case .enMantenimiento: return "En mantenimiento"
-        }
+    private static func parse(_ value: String) -> Date? {
+        let fractional = ISO8601DateFormatter()
+        fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return fractional.date(from: value) ?? ISO8601DateFormatter().date(from: value)
     }
-}
 
-struct AmbulanceRequest: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var patientId: UUID
-    var patientName: String
-    var reason: String
-    var destination: String
-    var createdAt: Date
-}
+    /// /turnos/mios solo devuelve turnos publicados.
+    init(_ row: TurnoAPI) {
+        id = row.id
+        service = row.area
+        start = Self.parse(row.start)
+        end = Self.parse(row.end)
+        published = true
+    }
 
-struct AmbulanceLogEntry: Identifiable, Codable, Hashable {
-    var id = UUID()
-    var requestedBy: String
-    var reason: String
-    var destination: String
-    var dispatchedBy: String
-    var startedAt: Date
-    var endedAt: Date?
-}
-
-struct AmbulanceSnapshot: Hashable {
-    var state: AmbulanceState
-    var pending: AmbulanceRequest?
-    var active: AmbulanceLogEntry?
-}
-
-// MARK: - Información pública
-
-struct PublicOverview {
-    let totalBeds: Int
-    let occupiedBeds: Int
-    let vipFree: Int
-    let semiBedsFree: Int
-    let onDutyDoctors: [String]
-    let notices: [String]
-}
-
-// MARK: - Persistencia y errores
-
-struct HospitalData: Codable {
-    var users: [User]
-    var rooms: [Room]
-    var labs: [LabOrder]
-    var consultations: [Consultation]
-    var shifts: [Shift]
-    var ambulanceState: AmbulanceState
-    var ambulancePending: AmbulanceRequest?
-    var ambulanceLog: [AmbulanceLogEntry]
-    var notices: [String]
-}
-
-enum BackendError: LocalizedError {
-    case network, invalidCredentials, emailTaken, forbidden, notFound
-    case validation(String)
-
-    var errorDescription: String? {
-        switch self {
-        case .network: return "Sin conexión. Revisa tu conexión e intenta de nuevo."
-        case .invalidCredentials: return "Correo o contraseña incorrectos, o la cuenta todavía no está activa."
-        case .emailTaken: return "Revisa los datos. Este correo ya está registrado."
-        case .forbidden: return "No tienes permiso para realizar esta acción."
-        case .notFound: return "No se encontró el registro solicitado."
-        case .validation(let message): return message
-        }
+    var startText: String { start.map { Self.formatter.string(from: $0) } ?? L.text("shift.unavailable") }
+    var endText: String {
+        "Hasta " + (end.map { Self.formatter.string(from: $0) } ?? L.text("shift.unavailable"))
     }
 }

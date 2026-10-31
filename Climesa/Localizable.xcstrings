@@ -1,0 +1,226 @@
+{
+  "sourceLanguage": "es",
+  "strings": {
+    "common.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a intentar"
+          }
+        }
+      }
+    },
+    "common.logout": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cerrar sesión"
+          }
+        }
+      }
+    },
+    "tab.miDia": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mi día"
+          }
+        }
+      }
+    },
+    "tab.pacientes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pacientes"
+          }
+        }
+      }
+    },
+    "tab.resultados": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resultados"
+          }
+        }
+      }
+    },
+    "tab.turnos": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turnos"
+          }
+        }
+      }
+    },
+    "tab.perfil": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perfil"
+          }
+        }
+      }
+    },
+    "tab.inicio": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio"
+          }
+        }
+      }
+    },
+    "tab.fila": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fila"
+          }
+        }
+      }
+    },
+    "tab.citas": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Citas"
+          }
+        }
+      }
+    },
+    "tab.examenes": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exámenes"
+          }
+        }
+      }
+    },
+    "tab.mas": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más"
+          }
+        }
+      }
+    },
+    "role.MED": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Medicina"
+          }
+        }
+      }
+    },
+    "role.PAC": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paciente"
+          }
+        }
+      }
+    },
+    "unsupported.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu rol no usa esta aplicación"
+          }
+        }
+      }
+    },
+    "unsupported.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta cuenta no tiene un rol de Médico o Paciente con acceso a iOS. Usa la plataforma asignada a tu rol."
+          }
+        }
+      }
+    },
+    "live.reconnecting": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recuperando la conexión…"
+          }
+        }
+      }
+    },
+    "live.offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión. Los datos pueden estar desactualizados."
+          }
+        }
+      }
+    },
+    "live.partial": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algunas actualizaciones en vivo no están disponibles."
+          }
+        }
+      }
+    },
+    "shift.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fecha no disponible"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

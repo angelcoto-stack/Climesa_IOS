@@ -7,36 +7,44 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		01F6C46F51EDF8DE2715C2B8 /* LabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60D9A9BF52AB6DDA1845697 /* LabView.swift */; };
-		06F12F930C72D91C4AF1DBA0 /* AmbulanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */; };
 		2F62E1F8BC117893AEC63B41 /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0DCAA17C3A5A8C895863B5 /* AuthViewModel.swift */; };
-		41DB57EA9EC7B1F934CF5361 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB414398E74C92C54D19BA0 /* MainView.swift */; };
-		4D8FEC36D65DE5164ED016D0 /* RoomsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 072D11C7E2D412DDAFBC5486 /* RoomsView.swift */; };
 		50DCC144C7CFB6D6A1952949 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A6592E1D4F178A39E8D621 /* Models.swift */; };
 		6A0A9BFDDEC7085A7705A71E /* ClimesaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CA95DF552D6489593ACC563 /* ClimesaApp.swift */; };
-		7394247A45FFCB6BB7247536 /* ShiftsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730C333420FA6B74B1C29F16 /* ShiftsView.swift */; };
-		ACE7938021505DBC755968B0 /* ConsultationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */; };
-		AEECCF317F1EB52A40AFF4A6 /* HospitalBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */; };
 		BD767B8681E0EBB79F05C359 /* AuthViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5E07038EC71B3E6F0E81A7 /* AuthViews.swift */; };
 		CC0871B228B2C0D984DB173B /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = D77D062B667B6DDC3C8C6302 /* Theme.swift */; };
 		F9F11A914593DAB2DF01559C /* ShellViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31354870C18B708AB8BD5A5 /* ShellViews.swift */; };
+		0D44F3A662604B6B2BCEE081 /* Access.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FE31F9E75FB8FAF3C74BF34 /* Access.swift */; };
+		3A8CC5B02C8BF335AB55782E /* LiveState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03425240E6F39F80F723183 /* LiveState.swift */; };
+		A804B4ABC5799A003581A8E5 /* RealtimeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B38C523A93AA8181D941EC9 /* RealtimeModels.swift */; };
+		20925CE9AB4B2EFF5C2CCF71 /* RealtimeProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 784DA25530AF8DFA49168A87 /* RealtimeProtocol.swift */; };
+		23D1962DDB27F0A3517430DE /* SupabaseRealtimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1CA6ABD76A55E62C2B58861A /* SupabaseRealtimeService.swift */; };
+		977245C786A4310A11A801E6 /* URLSessionRealtimeSocket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6114D56CED11FE8DD307FA5C /* URLSessionRealtimeSocket.swift */; };
+		B8B392ACAEADB810AA4BA1A0 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9BE9E2F7C488D370496F97 /* Network.swift */; };
+		970994055C4B773E5951CAA2 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0043392664B38352721CCAC1 /* KeychainStore.swift */; };
+		DD4A97391396BC15E4415F3B /* LiveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F373EB0F8CA80673A2A2FC2 /* LiveViewModel.swift */; };
+		E6257F37331D015E17C0F250 /* Configuration.plist in Resources */ = {isa = PBXBuildFile; fileRef = E133FD5773DBAD41645FDCC5 /* Configuration.plist */; };
+		D36E2EEACD86DDF8126D7EFD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		072D11C7E2D412DDAFBC5486 /* RoomsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsView.swift; sourceTree = "<group>"; };
 		07A6592E1D4F178A39E8D621 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		0CA95DF552D6489593ACC563 /* ClimesaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClimesaApp.swift; sourceTree = "<group>"; };
 		1A5E07038EC71B3E6F0E81A7 /* AuthViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViews.swift; sourceTree = "<group>"; };
-		2EB414398E74C92C54D19BA0 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
-		730C333420FA6B74B1C29F16 /* ShiftsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftsView.swift; sourceTree = "<group>"; };
-		B60D9A9BF52AB6DDA1845697 /* LabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabView.swift; sourceTree = "<group>"; };
 		CD0DCAA17C3A5A8C895863B5 /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
-		D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbulanceView.swift; sourceTree = "<group>"; };
-		D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HospitalBackend.swift; sourceTree = "<group>"; };
 		D77D062B667B6DDC3C8C6302 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		DE2F71A8127D372B3B4FF030 /* Climesa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Climesa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E31354870C18B708AB8BD5A5 /* ShellViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellViews.swift; sourceTree = "<group>"; };
-		EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsultationView.swift; sourceTree = "<group>"; };
+		7FE31F9E75FB8FAF3C74BF34 /* Access.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Access.swift; sourceTree = "<group>"; };
+		B03425240E6F39F80F723183 /* LiveState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveState.swift; sourceTree = "<group>"; };
+		8B38C523A93AA8181D941EC9 /* RealtimeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeModels.swift; sourceTree = "<group>"; };
+		784DA25530AF8DFA49168A87 /* RealtimeProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealtimeProtocol.swift; sourceTree = "<group>"; };
+		1CA6ABD76A55E62C2B58861A /* SupabaseRealtimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRealtimeService.swift; sourceTree = "<group>"; };
+		6114D56CED11FE8DD307FA5C /* URLSessionRealtimeSocket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSessionRealtimeSocket.swift; sourceTree = "<group>"; };
+		2E9BE9E2F7C488D370496F97 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
+		0043392664B38352721CCAC1 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		3F373EB0F8CA80673A2A2FC2 /* LiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewModel.swift; sourceTree = "<group>"; };
+		E133FD5773DBAD41645FDCC5 /* Configuration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Configuration.plist; sourceTree = "<group>"; };
+		466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,21 +79,9 @@
 			isa = PBXGroup;
 			children = (
 				D77D062B667B6DDC3C8C6302 /* Theme.swift */,
+				59A91DB2A9A436F0BBCECEB2 /* Logic */,
 			);
 			path = Core;
-			sourceTree = "<group>";
-		};
-		EF7FA5A8EF72943501BCE2AA /* Features */ = {
-			isa = PBXGroup;
-			children = (
-				D2B264316208DC3BB7B27F61 /* AmbulanceView.swift */,
-				EB74B9D4BC1F77C5A77294F6 /* ConsultationView.swift */,
-				B60D9A9BF52AB6DDA1845697 /* LabView.swift */,
-				2EB414398E74C92C54D19BA0 /* MainView.swift */,
-				072D11C7E2D412DDAFBC5486 /* RoomsView.swift */,
-				730C333420FA6B74B1C29F16 /* ShiftsView.swift */,
-			);
-			path = Features;
 			sourceTree = "<group>";
 		};
 		9EC242A4E88F809E71A4239B /* Models */ = {
@@ -99,7 +95,9 @@
 		BE6CF8D6CCA50C6B2F075564 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				D5869C8B97B66E21B1EF1868 /* HospitalBackend.swift */,
+				2E9BE9E2F7C488D370496F97 /* Network.swift */,
+				0043392664B38352721CCAC1 /* KeychainStore.swift */,
+				3F373EB0F8CA80673A2A2FC2 /* LiveViewModel.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -118,10 +116,11 @@
 				26B5B54969B86F4AC480309D /* App */,
 				5DC2DE2CF5E6812244FC855F /* Auth */,
 				3AF9A394DA740BDADF06148C /* Core */,
-				EF7FA5A8EF72943501BCE2AA /* Features */,
 				9EC242A4E88F809E71A4239B /* Models */,
 				BE6CF8D6CCA50C6B2F075564 /* Services */,
 				3B72A5766D2AF0434CB8C3CE /* Shell */,
+				E133FD5773DBAD41645FDCC5 /* Configuration.plist */,
+				466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */,
 			);
 			path = Climesa;
 			sourceTree = "<group>";
@@ -140,6 +139,27 @@
 				DE2F71A8127D372B3B4FF030 /* Climesa.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		59A91DB2A9A436F0BBCECEB2 /* Logic */ = {
+			isa = PBXGroup;
+			children = (
+				7FE31F9E75FB8FAF3C74BF34 /* Access.swift */,
+				531AB98A897D3BA846C01B44 /* Realtime */,
+			);
+			path = Logic;
+			sourceTree = "<group>";
+		};
+		531AB98A897D3BA846C01B44 /* Realtime */ = {
+			isa = PBXGroup;
+			children = (
+				B03425240E6F39F80F723183 /* LiveState.swift */,
+				8B38C523A93AA8181D941EC9 /* RealtimeModels.swift */,
+				784DA25530AF8DFA49168A87 /* RealtimeProtocol.swift */,
+				1CA6ABD76A55E62C2B58861A /* SupabaseRealtimeService.swift */,
+				6114D56CED11FE8DD307FA5C /* URLSessionRealtimeSocket.swift */,
+			);
+			path = Realtime;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -201,6 +221,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E6257F37331D015E17C0F250 /* Configuration.plist in Resources */,
+				D36E2EEACD86DDF8126D7EFD /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -215,15 +237,17 @@
 				2F62E1F8BC117893AEC63B41 /* AuthViewModel.swift in Sources */,
 				BD767B8681E0EBB79F05C359 /* AuthViews.swift in Sources */,
 				CC0871B228B2C0D984DB173B /* Theme.swift in Sources */,
-				06F12F930C72D91C4AF1DBA0 /* AmbulanceView.swift in Sources */,
-				ACE7938021505DBC755968B0 /* ConsultationView.swift in Sources */,
-				01F6C46F51EDF8DE2715C2B8 /* LabView.swift in Sources */,
-				41DB57EA9EC7B1F934CF5361 /* MainView.swift in Sources */,
-				4D8FEC36D65DE5164ED016D0 /* RoomsView.swift in Sources */,
-				7394247A45FFCB6BB7247536 /* ShiftsView.swift in Sources */,
 				50DCC144C7CFB6D6A1952949 /* Models.swift in Sources */,
-				AEECCF317F1EB52A40AFF4A6 /* HospitalBackend.swift in Sources */,
 				F9F11A914593DAB2DF01559C /* ShellViews.swift in Sources */,
+				0D44F3A662604B6B2BCEE081 /* Access.swift in Sources */,
+				3A8CC5B02C8BF335AB55782E /* LiveState.swift in Sources */,
+				A804B4ABC5799A003581A8E5 /* RealtimeModels.swift in Sources */,
+				20925CE9AB4B2EFF5C2CCF71 /* RealtimeProtocol.swift in Sources */,
+				23D1962DDB27F0A3517430DE /* SupabaseRealtimeService.swift in Sources */,
+				977245C786A4310A11A801E6 /* URLSessionRealtimeSocket.swift in Sources */,
+				B8B392ACAEADB810AA4BA1A0 /* Network.swift in Sources */,
+				970994055C4B773E5951CAA2 /* KeychainStore.swift in Sources */,
+				DD4A97391396BC15E4415F3B /* LiveViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

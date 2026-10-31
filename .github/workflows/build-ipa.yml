@@ -3,11 +3,34 @@ on:
   workflow_dispatch:
   push:
     branches: [main, master]
+  pull_request:
+    branches: [main, master]
 jobs:
+  simulador:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pruebas de la lógica pura (swift test)
+        run: swift test
+
+      - name: Compilar para simulador (Debug)
+        run: |
+          xcodebuild \
+            -project Climesa.xcodeproj \
+            -scheme Climesa \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
   build:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
+      - name: Pruebas de la lógica pura (swift test)
+        run: swift test
 
       - name: Archivos del repositorio
         run: |
