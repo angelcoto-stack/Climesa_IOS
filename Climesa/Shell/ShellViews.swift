@@ -45,7 +45,7 @@ struct ShellRoot: View {
                 .frame(height: 44)
                 .background(Theme.background)
 
-            ConnectionBanner(state: live.snapshot.connection)
+            ConnectionBanner(state: live.snapshot.connection, partial: !live.snapshot.droppedChannels.isEmpty)
 
             TabView(selection: $tab) {
                 ForEach(tabs, id: \.self) { t in
@@ -101,9 +101,18 @@ struct ShellRoot: View {
 /// Aviso visible solo cuando el tiempo real no está conectado.
 struct ConnectionBanner: View {
     let state: ConnectionState
+    /// Hay canales que se dejaron fuera tras varios rechazos; el resto sigue en vivo.
+    var partial: Bool = false
 
     var body: some View {
-        if state != .live {
+        if state == .live && partial {
+            Text(L.text("live.partial"))
+                .font(.system(size: 11.5))
+                .foregroundColor(Theme.ink)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(Theme.infoBg)
+        } else if state != .live {
             Text(L.text(state == .offline ? "live.offline" : "live.reconnecting"))
                 .font(.system(size: 11.5))
                 .foregroundColor(state == .offline ? Theme.errorText : Theme.ink)

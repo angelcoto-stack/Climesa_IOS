@@ -199,6 +199,17 @@
         }
       }
     },
+    "live.partial": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algunas actualizaciones en vivo no están disponibles."
+          }
+        }
+      }
+    },
     "shift.unavailable": {
       "extractionState": "manual",
       "localizations": {

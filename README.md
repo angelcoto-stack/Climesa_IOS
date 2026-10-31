@@ -55,12 +55,12 @@ Nunca pongas contraseñas ni claves secretas en el repositorio.
 
 ## Pruebas
 
-Hay 89 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
+Hay 99 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
 
 - `AccessTests`, `TabPolicyTests`: roles, permisos, pestañas por rol y su orden, decodificación del perfil de `/auth/me`.
 - `RegistrationRulesTests`: nombre, correo, contraseña y confirmación, con sus límites.
 - `RealtimeProtocolTests`, `RealtimeProtocolEdgeTests`: armado y lectura de marcos Phoenix, texto malformado, respuestas de error, recuperación de eventos.
-- `SupabaseRealtimeServiceTests`: servicio de tiempo real con un socket de prueba (uniones, latido, reconexión con espera creciente hasta 30 s, recuperación paginada, token nuevo por conexión).
+- `SupabaseRealtimeServiceTests`: servicio de tiempo real con un socket de prueba (uniones, latido con respuesta y reconexión si no llega, renovación del token con `access_token`, canales rechazados 3 veces seguidas que se dejan fuera con un aviso no fatal, reconexión con espera creciente hasta 30 s, recuperación paginada, token nuevo por conexión).
 
 Queda manual en el iPhone (el CI no lo comprueba): ingreso real con Supabase Auth, llegada de eventos por el WebSocket real, recuperación tras perder y recuperar la red, vista de Mis turnos con datos reales (fechas y zona horaria), Keychain, cierre de sesión a los 5 minutos en segundo plano, diseño y accesibilidad.
 
