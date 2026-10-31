@@ -263,4 +263,198 @@ final class SupabaseRealtimeServiceTests: XCTestCase {
         let cursors = await log.cursors
         XCTAssertEqual(cursors, ["7", "8"])
     }
+
+    // MARK: - Casos adicionales
+
+    private func joinAll(_ socket: FakeSocket) {
+        socket.push(.text(joined("publico")))
+        socket.push(.text(joined("rol:ENF")))
+    }
+
+    /// Deja el servicio en vivo, cae el primer socket y une los canales del segundo; devuelve el segundo.
+    private func dropAndRejoin(_ factory: FakeSocketFactory, _ recorder: SignalRecorder) async throws -> FakeSocket {
+        await eventually("debe abrir el primer socket") { factory.sockets.count == 1 }
+        let first = try XCTUnwrap(factory.sockets.first)
+        joinAll(first)
+        await eventually("debe quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        first.push(.closed("red"))
+        await eventually("debe abrir un segundo socket") { factory.sockets.count == 2 }
+        let second = factory.sockets[1]
+        joinAll(second)
+        return second
+    }
+
+    func testLaEsperaEntreReconexionesNuncaDecreceNiPasaDeTreintaSegundos() {
+        XCTAssertEqual(SupabaseRealtimeService.defaultBackoff(0), 1)
+        XCTAssertEqual(SupabaseRealtimeService.defaultBackoff(3), 4)
+        XCTAssertEqual(SupabaseRealtimeService.defaultBackoff(4), 8)
+        var previous: TimeInterval = 0
+        for attempt in 1...40 {
+            let wait: TimeInterval = SupabaseRealtimeService.defaultBackoff(attempt)
+            XCTAssertGreaterThanOrEqual(wait, previous)
+            XCTAssertLessThanOrEqual(wait, 30)
+            previous = wait
+        }
+        XCTAssertEqual(previous, 30)
+    }
+
+    func testLaRecuperacionSeDetieneSiElCursorNoAvanza() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let service = SupabaseRealtimeService(
+            websocketURL: "wss://ejemplo.test/socket",
+            accessToken: { "token-ejemplo" },
+            catchUp: { cursor in
+                await log.add(cursor)
+                return CatchUp(cursor: cursor, events: [DomainEvent(type: "turno.publicado", entity: "turno", id: "a", version: 1)])
+            },
+            head: { "7" },
+            pageSize: 1,
+            sockets: factory,
+            heartbeatInterval: 1_000,
+            backoff: { _ in 0.01 }
+        )
+        let consumer = consume(service, into: recorder)
+        defer { consumer.cancel() }
+
+        _ = try await dropAndRejoin(factory, recorder)
+        let recuperado = RealtimeSignal.event(DomainEvent(type: "turno.publicado", entity: "turno", id: "a", version: 1))
+        await eventually("debe emitir el evento recuperado") { await recorder.signals.contains(recuperado) }
+        await eventually("debe volver a quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        let cursors = await log.cursors
+        XCTAssertEqual(cursors, ["7"], "si el cursor no avanza no se vuelve a pedir")
+    }
+
+    func testLaRecuperacionTerminaAlLlegarUnaPaginaIncompleta() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let eventA = DomainEvent(type: "turno.publicado", entity: "turno", id: "a", version: 1)
+        let eventB = DomainEvent(type: "turno.publicado", entity: "turno", id: "b", version: 1)
+        let eventC = DomainEvent(type: "turno.publicado", entity: "turno", id: "c", version: 1)
+        let service = SupabaseRealtimeService(
+            websocketURL: "wss://ejemplo.test/socket",
+            accessToken: { "token-ejemplo" },
+            catchUp: { cursor in
+                await log.add(cursor)
+                if cursor == "7" { return CatchUp(cursor: "8", events: [eventA, eventB]) }
+                return CatchUp(cursor: "9", events: [eventC])
+            },
+            head: { "7" },
+            pageSize: 2,
+            sockets: factory,
+            heartbeatInterval: 1_000,
+            backoff: { _ in 0.01 }
+        )
+        let consumer = consume(service, into: recorder)
+        defer { consumer.cancel() }
+
+        _ = try await dropAndRejoin(factory, recorder)
+        await eventually("debe emitir el ultimo evento") { await recorder.signals.contains(RealtimeSignal.event(eventC)) }
+        await eventually("debe volver a quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        let signals = await recorder.signals
+        XCTAssertTrue(signals.contains(RealtimeSignal.event(eventA)))
+        XCTAssertTrue(signals.contains(RealtimeSignal.event(eventB)))
+        let cursors = await log.cursors
+        XCTAssertEqual(cursors, ["7", "8"], "la segunda pagina trae menos de pageSize y ahi termina")
+    }
+
+    func testSiLaRecuperacionFallaElServicioReconectaYSigueVivo() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let service = SupabaseRealtimeService(
+            websocketURL: "wss://ejemplo.test/socket",
+            accessToken: { "token-ejemplo" },
+            catchUp: { cursor in
+                await log.add(cursor)
+                throw TestFailure()
+            },
+            head: { "7" },
+            sockets: factory,
+            heartbeatInterval: 1_000,
+            backoff: { _ in 0.01 }
+        )
+        let consumer = consume(service, into: recorder)
+        defer { consumer.cancel() }
+
+        let second = try await dropAndRejoin(factory, recorder)
+        await eventually("debe abrir un tercer socket tras el fallo") { factory.sockets.count == 3 }
+        XCTAssertTrue(second.isClosed, "el socket con la recuperacion fallida se cierra")
+        let cursors = await log.cursors
+        XCTAssertEqual(cursors, ["7"])
+    }
+
+    func testUnCanalRechazadoCierraElSocketYForzaUnaReconexion() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el primer socket") { factory.sockets.count == 1 }
+        let first = try XCTUnwrap(factory.sockets.first)
+        first.push(.text(joined("publico")))
+        first.push(.text(#"{"topic":"realtime:rol:ENF","event":"phx_reply","payload":{"status":"error"},"ref":"2"}"#))
+        await eventually("debe abrir un segundo socket") { factory.sockets.count >= 2 }
+        XCTAssertTrue(first.isClosed)
+        let signals = await recorder.signals
+        XCTAssertFalse(signals.contains(RealtimeSignal.resync), "con un canal rechazado no se completa la union")
+        XCTAssertFalse(signals.contains(RealtimeSignal.state(.live)))
+    }
+
+    func testIgnoraMarcosMalformadosDesconocidosYAcusesDeLatido() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el primer socket") { factory.sockets.count == 1 }
+        let first = try XCTUnwrap(factory.sockets.first)
+        first.push(.text("no es json"))
+        first.push(.text(#"{"topic":"realtime:publico","event":"presence_state","payload":{}}"#))
+        first.push(.text(#"{"topic":"phoenix","event":"phx_reply","payload":{"status":"ok"},"ref":"3"}"#))
+        joinAll(first)
+        await eventually("debe quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        XCTAssertEqual(factory.sockets.count, 1, "nada de lo anterior provoca una reconexion")
+        XCTAssertFalse(first.isClosed)
+    }
+
+    func testCadaConexionPideUnTokenNuevoAlRenovarse() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder()
+        let tokens = TokenSource()
+        let service = SupabaseRealtimeService(
+            websocketURL: "wss://ejemplo.test/socket",
+            accessToken: { () async -> String? in await tokens.next() },
+            catchUp: { _ in CatchUp(cursor: "0", events: []) },
+            sockets: factory,
+            heartbeatInterval: 1_000,
+            backoff: { _ in 0.01 }
+        )
+        let consumer = consume(service, into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe enviar las dos uniones del primer socket") { factory.sockets.first?.sent.count == 2 }
+        let first = try XCTUnwrap(factory.sockets.first)
+        XCTAssertTrue(first.sent.allSatisfy { $0.contains("token-1") })
+        first.push(.closed("red"))
+        await eventually("debe enviar las dos uniones del segundo socket") { factory.sockets.count == 2 && factory.sockets[1].sent.count == 2 }
+        XCTAssertTrue(factory.sockets[1].sent.allSatisfy { $0.contains("token-2") })
+    }
+
+    func testSiElCursorDelServidorFallaIgualQuedaEnVivoSinRecuperar() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let failingHead: @Sendable () async throws -> String = { throw TestFailure() }
+        let consumer = consume(makeService(factory, log: log, head: failingHead), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el primer socket") { factory.sockets.count == 1 }
+        let first = try XCTUnwrap(factory.sockets.first)
+        joinAll(first)
+        await eventually("debe quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        let cursors = await log.cursors
+        XCTAssertTrue(cursors.isEmpty)
+    }
+}
+
+private struct TestFailure: Error {}
+
+private actor TokenSource {
+    private var count = 0
+    func next() -> String {
+        count += 1
+        return "token-\(count)"
+    }
 }
