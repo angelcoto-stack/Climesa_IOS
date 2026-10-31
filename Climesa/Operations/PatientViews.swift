@@ -6,6 +6,12 @@ import SwiftUI
 struct PatientsView: View {
     let user: UserProfile
     let api: APIClient?
+
+    init(user: UserProfile, api: APIClient?) {
+        self.user = user
+        self.api = api
+    }
+
     @State private var query = ""
     @State private var searching = false
     @State private var searchError: String?
@@ -309,6 +315,13 @@ struct PatientStateSheet: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var action = ActionModel()
     @State private var reason = ""
+
+    init(patient: PatientRecord, user: UserProfile, api: APIClient?, onSaved: @escaping () -> Void) {
+        self.patient = patient
+        self.user = user
+        self.api = api
+        self.onSaved = onSaved
+    }
 
     private var deactivating: Bool { patient.isActive }
 
