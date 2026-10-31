@@ -373,3 +373,161 @@ struct MockHospitalizadosView: View {
         }
     }
 }
+
+// MARK: - Maquetas de vinculación, cuenta, expediente y llegada (I03, I10, I11, I13, I22, I25)
+
+/// Estados de la vinculación que la maqueta puede simular.
+enum MockLinkState: String, CaseIterable {
+    case enVerificacion = "En verificación"
+    case aprobada = "Aprobada"
+    case rechazada = "Rechazada"
+}
+
+/// Vincular cuenta con expediente: DUI y fecha de nacimiento, con un estado simulado.
+struct MockVinculacionView: View {
+    @State var dui: String = ""
+    @State var birthDate: String = ""
+    @State var simulated: MockLinkState = .enVerificacion
+
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / PACIENTE", title: "Vincular expediente.", titleSize: 28) {
+            MockNotice()
+            BodyText(text: "Une tu cuenta con tu expediente. Mientras no se apruebe, no verás datos clínicos.")
+            PlainField(label: "DUI", text: $dui, prompt: "00000000-0")
+            PlainField(label: "Fecha de nacimiento", text: $birthDate, prompt: "DD/MM/AAAA")
+            PrimaryButton(title: "Enviar", isEnabled: false) {}
+            SectionTitle(text: "Estado (simulado)")
+            Picker("Estado", selection: $simulated) {
+                ForEach(MockLinkState.allCases, id: \.self) { state in
+                    Text(state.rawValue).tag(state)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(Theme.blue)
+            MockRow(title: simulated.rawValue,
+                    detail: "Solo cambia en esta maqueta. La aprobación la hace el personal de recepción.",
+                    tag: simulated == .rechazada ? "Rechazada" : nil,
+                    alert: simulated == .rechazada)
+        }
+    }
+}
+
+/// Información pública del hospital: ocupación general, médicos de turno y avisos. Sin nombres de pacientes.
+struct MockHospitalInfoView: View {
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / PÚBLICO", title: "Hospital.", titleSize: 30) {
+            MockNotice()
+            SectionTitle(text: "Ocupación general")
+            MockRow(title: "2.ª planta", detail: "8 de 12 camas ocupadas (ficticio)", tag: "Ocupada")
+            MockRow(title: "3.ª planta", detail: "3 de 5 habitaciones VIP ocupadas (ficticio)", tag: "Disponible")
+            SectionTitle(text: "Médicos de turno")
+            MockRow(title: "Dra. Ejemplo Prueba", detail: "Medicina interna · hasta las 18:00")
+            SectionTitle(text: "Avisos")
+            MockRow(title: "Elevador en mantenimiento", detail: "Usa la escalera norte hasta el viernes (ficticio)")
+            BodyText(text: "Información pública: no muestra datos de pacientes.")
+        }
+    }
+}
+
+/// Quién vio mi expediente: cada acceso con fecha, rol y motivo. Solo lectura.
+struct MockAccesosView: View {
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / PACIENTE", title: "Quién vio mi expediente.", titleSize: 26) {
+            MockNotice()
+            BodyText(text: "Cada vez que alguien abre tu expediente queda registrado aquí.")
+            MockRow(title: "12/10/2026 · 09:14", detail: "Dra. Ejemplo Prueba · Médica tratante · Consulta programada")
+            MockRow(title: "03/08/2026 · 16:40", detail: "Dr. Ficticio Demo · Acceso excepcional aprobado", tag: "Excepción")
+            BodyText(text: "Los accesos no se pueden borrar desde la app.")
+        }
+    }
+}
+
+/// Mi cuenta: cargos, pagos y factura propia. Sin contenido clínico.
+struct MockCuentaView: View {
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / PACIENTE", title: "Mi cuenta.", titleSize: 30) {
+            MockNotice()
+            Card {
+                DetailRow(label: "Saldo pendiente", value: "$0.00 (ficticio)")
+                DetailRow(label: "Último pago", value: "$25.00 · 10/10/2026 (ficticio)")
+            }
+            SectionTitle(text: "Cargos")
+            MockRow(title: "Consulta general", detail: "12/10/2026 · $25.00", tag: "Pagado")
+            MockRow(title: "Laboratorio", detail: "12/10/2026 · $18.50", tag: "Pagado")
+            SecondaryButton(title: "Descargar factura", isEnabled: false) {}
+            BodyText(text: "Solo ves tu propia cuenta. Ningún dato económico llega al personal clínico.")
+        }
+    }
+}
+
+/// Tipos de registro del expediente, en pestañas internas.
+enum MockRecordSection: String, CaseIterable {
+    case consultas = "Consultas"
+    case diagnosticos = "Diagnósticos"
+    case recetas = "Recetas"
+    case resultados = "Resultados"
+    case hospitalizaciones = "Hospitalizaciones"
+}
+
+/// Expediente del paciente (médico): historial por secciones. Todo acceso queda auditado.
+struct MockExpedienteView: View {
+    @State var section: MockRecordSection = .consultas
+
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / MEDICINA", title: "Expediente.", titleSize: 30) {
+            MockNotice()
+            Card {
+                DetailRow(label: "Paciente", value: "Ana Ficticia · expediente de prueba")
+                DetailRow(label: "Acceso", value: "Auditado: queda registrado con tu nombre y la hora.")
+            }
+            Picker("Sección", selection: $section) {
+                ForEach(MockRecordSection.allCases, id: \.self) { item in
+                    Text(item.rawValue).tag(item)
+                }
+            }
+            .pickerStyle(.menu)
+            .tint(Theme.blue)
+            SectionTitle(text: section.rawValue)
+            sectionRows
+            SecondaryButton(title: "Pedir acceso excepcional", isEnabled: false) {}
+            BodyText(text: "Si no eres la médica o el médico tratante, el acceso lo aprueba otra persona.")
+        }
+    }
+
+    @ViewBuilder
+    private var sectionRows: some View {
+        switch section {
+        case .consultas:
+            MockRow(title: "12/10/2026 · Dra. Ejemplo Prueba", detail: "Faringitis aguda (ficticio)")
+            MockRow(title: "03/08/2026 · Dr. Ficticio Demo", detail: "Control de presión arterial (ficticio)")
+        case .diagnosticos:
+            MockRow(title: "J02.9 · Faringitis aguda", detail: "Diagnóstico activo (ficticio)")
+            MockRow(title: "I10 · Hipertensión esencial", detail: "Control en curso (ficticio)")
+        case .recetas:
+            MockRow(title: "Paracetamol 500 mg", detail: "Cada 8 horas durante 3 días (ficticio)")
+        case .resultados:
+            ForEach(mockExamSamples) { exam in
+                MockRow(title: exam.name, detail: "Resultado de prueba", tag: exam.state, alert: exam.critical)
+            }
+        case .hospitalizaciones:
+            MockRow(title: "Cama 2-03 · Medicina interna", detail: "4 días (ficticio)", tag: "Alta pendiente")
+        }
+    }
+}
+
+/// Llegada de ambulancia: reporte prehospital para quien recibe al paciente. Solo lectura.
+struct MockLlegadaView: View {
+    var body: some View {
+        ScreenScaffold(label: "MAQUETA / MEDICINA", title: "Llegada de ambulancia.", titleSize: 26) {
+            MockNotice()
+            Banner(kind: .info, text: "Datos prehospitalarios: solo para quien recibe al paciente.")
+            Card {
+                DetailRow(label: "Hora estimada de llegada", value: "14:20 (ficticia)")
+                DetailRow(label: "Motivo", value: "Dolor torácico (ficticio)")
+                DetailRow(label: "Signos", value: "FC 110 · PA 150/95 · SatO2 94 % (ficticios)")
+                DetailRow(label: "Prioridad", value: "Alta")
+            }
+            PrimaryButton(title: "Marcar recibido", isEnabled: false) {}
+        }
+    }
+}
