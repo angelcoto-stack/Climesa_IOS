@@ -38,6 +38,7 @@
 		CC6E3E5D5A104AFC9AA43FF8 /* StaffWriteRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95FF909BA56423FB89C3655 /* StaffWriteRules.swift */; };
 		E8F353C60637489198D3872E /* MockFlowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = B03C47451BAD4B36AE975E40 /* MockFlowViews.swift */; };
 		66095AE575674C3B942AC6AE /* FlowVisibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C56066170A465E9D340E4B /* FlowVisibility.swift */; };
+		8F1D2C7A9B3E4061A5C7D2E9 /* NavigationRoutes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5342BE0AADA84282905BEA04 /* NavigationRoutes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -73,6 +74,7 @@
 		A95FF909BA56423FB89C3655 /* StaffWriteRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffWriteRules.swift; sourceTree = "<group>"; };
 		B03C47451BAD4B36AE975E40 /* MockFlowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFlowViews.swift; sourceTree = "<group>"; };
 		14C56066170A465E9D340E4B /* FlowVisibility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowVisibility.swift; sourceTree = "<group>"; };
+		5342BE0AADA84282905BEA04 /* NavigationRoutes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRoutes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -174,6 +176,7 @@
 			isa = PBXGroup;
 			children = (
 				7FE31F9E75FB8FAF3C74BF34 /* Access.swift */,
+				5342BE0AADA84282905BEA04 /* NavigationRoutes.swift */,
 				531AB98A897D3BA846C01B44 /* Realtime */,
 				A1B2C3D4E5F60718293A4B5C /* Operations */,
 				18032A154204446AACDC9486 /* Patients */,
@@ -328,6 +331,7 @@
 				47DC280DDD0B40DB8537F799 /* PatientRules.swift in Sources */,
 				310DA20B682D4C288D90E0F3 /* PatientViews.swift in Sources */,
 				E8F353C60637489198D3872E /* MockFlowViews.swift in Sources */,
+				8F1D2C7A9B3E4061A5C7D2E9 /* NavigationRoutes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
