@@ -60,11 +60,12 @@ Nunca pongas contraseñas ni claves secretas en el repositorio.
 
 ## Pruebas
 
-Hay 204 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
+Hay 211 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
 
 - `AccessTests`, `TabPolicyTests`: roles, permisos, pestañas por rol y su orden, decodificación del perfil de `/auth/me`.
 - `OperationsRulesTests`: secciones por permiso, mantenimiento de ambulancia, cancelar y publicar turnos, rango de fechas, directorio de personal, etiquetas en español y fechas en hora de El Salvador.
 - `WriteSupportTests`: mapeo de errores `problem+json` (409 de versión) y claves de idempotencia.
+- `NavigationRoutesTests`: cada pantalla iOS de `pantallas.csv` tiene una ruta alcanzable desde MED o PAC; sin permiso no hay ruta a las pantallas protegidas.
 - `RegistrationRulesTests`: nombre, correo, contraseña y confirmación, con sus límites.
 - `RealtimeProtocolTests`, `RealtimeProtocolEdgeTests`: armado y lectura de marcos Phoenix, texto malformado, respuestas de error, recuperación de eventos.
 - `SupabaseRealtimeServiceTests`: servicio de tiempo real con un socket de prueba (uniones, latido con respuesta y reconexión si no llega, renovación del token con `access_token`, canales rechazados 3 veces seguidas que se dejan fuera con un aviso no fatal, reconexión con espera creciente hasta 30 s, recuperación paginada, token nuevo por conexión).
@@ -72,6 +73,29 @@ Hay 204 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del reposi
 Queda manual en el iPhone (el CI no lo comprueba): ingreso real con Supabase Auth, llegada de eventos por el WebSocket real, recuperación tras perder y recuperar la red, vista de Mis turnos con datos reales (fechas y zona horaria), Keychain, cierre de sesión a los 5 minutos en segundo plano, diseño y accesibilidad.
 
 `project.yml` es opcional (XcodeGen); el proyecto ya incluye todos los archivos.
+
+## Mapa de navegación
+
+Cada pantalla iOS de `pantallas.csv` (MED y PAC) tiene una ruta. Las maquetas muestran el aviso "Maqueta" y sus acciones están deshabilitadas. La tabla de rutas está en `Climesa/Core/Logic/NavigationRoutes.swift` y la prueba `NavigationRoutesTests` comprueba el alcance.
+
+| Rol | Entrada | Pantallas (ID de pantallas.csv) | Permiso que exige |
+|---|---|---|---|
+| Todos | Ingreso | Ingreso (I01), Crear cuenta de paciente (I02) | Ninguno |
+| Médico | Mi día | Consulta (I21), Expediente (I22), Mis hospitalizados (I24), Llegada de ambulancia (I25) | `consulta.iniciar`, `expediente.ver`, `admision.ver`, `ambulancia.recibir_prehospital` |
+| Médico | Mi día | Mi día (I20) | Ninguno |
+| Médico | Mi día | Resultados por revisar (I23) | `resultados.ver` |
+| Médico | Resultados | Resultados por revisar (I23) | `resultados.ver` |
+| Médico | Turnos | Mis turnos (I26) | `turnos.ver` |
+| Médico y paciente | Perfil o Más | Perfil y notificaciones (I12), Información del hospital (I10) | Ninguno |
+| Paciente | Inicio | Inicio del paciente (I04) | Ninguno |
+| Paciente | Fila | Mi turno en fila (I05) | `fila.ver` |
+| Paciente | Citas | Mis citas (I06) | `citas.ver` |
+| Paciente | Exámenes | Mis exámenes (I07) | `resultados.ver` |
+| Paciente | Más, sección Mi atención | Vincular expediente (I03), Mi cuenta (I13), Quién vio mi expediente (I11), Mi historial (I08), Solicitar ambulancia (I09) | `cuenta.vincular`, Ninguno, `auditoria.mis_accesos`, `expediente.ver`, `ambulancia.solicitar` |
+
+Pantallas de gestión (Ambulancia, Planificación de turnos y Personal) siguen en Perfil o Más, bajo "Gestión", y no están en `pantallas.csv`.
+
+Pendiente: `permisos.csv` no tiene un código para "cuenta propia" del paciente, así que Mi cuenta (I13) se muestra a todo paciente. Hace falta decidir el código.
 
 ## Estructura
 
