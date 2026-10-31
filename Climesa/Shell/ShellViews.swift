@@ -357,6 +357,28 @@ struct AccountView: View {
 
             if area == .pac {
                 SectionTitle(text: "Mi atención")
+                if FlowVisibility.showsLinkAccount(user.access) {
+                    NavigationLink {
+                        MockVinculacionView()
+                    } label: {
+                        MockRow(title: "Vincular expediente", detail: "Unir tu cuenta con tu expediente (maqueta)")
+                    }
+                    .buttonStyle(.plain)
+                }
+                NavigationLink {
+                    MockCuentaView()
+                } label: {
+                    MockRow(title: "Mi cuenta", detail: "Cargos, pagos y factura (maqueta)")
+                }
+                .buttonStyle(.plain)
+                if FlowVisibility.showsAccessLog(user.access) {
+                    NavigationLink {
+                        MockAccesosView()
+                    } label: {
+                        MockRow(title: "Quién vio mi expediente", detail: "Accesos a tu expediente (maqueta)")
+                    }
+                    .buttonStyle(.plain)
+                }
                 if FlowVisibility.showsMedicalHistory(user.access) {
                     NavigationLink {
                         MockHistorialView()
@@ -374,6 +396,14 @@ struct AccountView: View {
                     .buttonStyle(.plain)
                 }
             }
+
+            SectionTitle(text: "Hospital")
+            NavigationLink {
+                MockHospitalInfoView()
+            } label: {
+                MockRow(title: "Información del hospital", detail: "Ocupación general y médicos de turno (maqueta)")
+            }
+            .buttonStyle(.plain)
 
             if !sections.isEmpty {
                 SectionTitle(text: "Gestión")

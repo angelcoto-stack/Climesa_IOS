@@ -304,6 +304,22 @@ struct MockMiDiaView: View {
                 }
                 .buttonStyle(.plain)
             }
+            if FlowVisibility.showsMedicalHistory(user.access) {
+                NavigationLink {
+                    MockExpedienteView()
+                } label: {
+                    MockRow(title: "Expediente", detail: "Historial del paciente (maqueta)", tag: "Auditado")
+                }
+                .buttonStyle(.plain)
+            }
+            if FlowVisibility.showsPrehospitalReport(user.access) {
+                NavigationLink {
+                    MockLlegadaView()
+                } label: {
+                    MockRow(title: "Llegada de ambulancia", detail: "Reporte prehospital (maqueta)", tag: "En camino")
+                }
+                .buttonStyle(.plain)
+            }
         }
     }
 }
