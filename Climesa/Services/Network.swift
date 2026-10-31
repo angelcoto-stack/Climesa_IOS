@@ -3,9 +3,18 @@ import Foundation
 /// Error con un mensaje ya listo para mostrar a la persona.
 enum ClientError: LocalizedError {
     case message(String)
+    /// 409 por versión desactualizada: el registro cambió y la operación no se guardó.
+    case versionConflict(String)
+
     var errorDescription: String? {
-        if case let .message(text) = self { return text }
-        return nil
+        switch self {
+        case .message(let text), .versionConflict(let text): return text
+        }
+    }
+
+    var isVersionConflict: Bool {
+        if case .versionConflict = self { return true }
+        return false
     }
 }
 
@@ -125,19 +134,12 @@ actor AuthService {
     }
 }
 
-/// application/problem+json (`detail`) con respaldo al formato anterior `error.message`.
-private struct APIErrorEnvelope: Decodable {
-    struct Detail: Decodable { let message: String? }
-    let detail: String?
-    let error: Detail?
-    var text: String? { detail ?? error?.message }
-}
-
-/// Cliente de la API de Climesa. Solo lee: /auth/me, /turnos/mios y /eventos.
+/// Cliente de la API de Climesa: lecturas (GET) y escrituras (POST y PATCH con JSON e `Idempotency-Key`).
 actor APIClient {
     private let transport = URLSession(configuration: .ephemeral)
     private let config: AppConfiguration
     private let auth: AuthService
+    private var idempotency = IdempotencyKeys()
 
     init(config: AppConfiguration, auth: AuthService) {
         self.config = config
@@ -151,12 +153,52 @@ actor APIClient {
 
     /// Respuesta cruda de un GET autenticado; la usa también la recuperación de eventos de tiempo real.
     func getData(_ path: String) async throws -> Data {
+        try await perform(method: "GET", path: path, body: nil, failure: "No se pudo consultar la información. Vuelve a intentar.")
+    }
+
+    /// POST con cuerpo JSON; devuelve la respuesta decodificada.
+    func post<Body: Encodable, T: Decodable>(_ path: String, body: Body, as type: T.Type) async throws -> T {
+        let data = try await write(method: "POST", path: path, body: body)
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// POST cuyo resultado no interesa (por ejemplo, entrar o salir de mantenimiento).
+    func post<Body: Encodable>(_ path: String, body: Body) async throws {
+        _ = try await write(method: "POST", path: path, body: body)
+    }
+
+    /// PATCH con cuerpo JSON; el resultado no se usa, la pantalla vuelve a pedir sus datos.
+    func patch<Body: Encodable>(_ path: String, body: Body) async throws {
+        _ = try await write(method: "PATCH", path: path, body: body)
+    }
+
+    /// Codifica el cuerpo con claves ordenadas (la misma solicitud produce los mismos bytes) y
+    /// reutiliza la `Idempotency-Key` si es un reintento de una escritura que no terminó bien.
+    private func write<Body: Encodable>(method: String, path: String, body: Body) async throws -> Data {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let payload = try encoder.encode(body)
+        let signature = IdempotencyKeys.signature(method: method, path: path, body: payload)
+        let key = idempotency.key(for: signature)
+        let data = try await perform(method: method, path: path, body: payload, idempotencyKey: key,
+                                     failure: "No se pudo completar la operación. Vuelve a intentar.")
+        idempotency.complete(signature)
+        return data
+    }
+
+    private func perform(method: String, path: String, body: Data?, idempotencyKey: String? = nil, failure: String) async throws -> Data {
         guard let session = try await auth.session() else { throw ClientError.message("Inicia sesión para continuar.") }
         let base = config.api.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         guard let url = URL(string: base + path) else { throw ClientError.message("Servidor inválido.") }
         var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
+        request.httpMethod = method
         request.setValue("Bearer \(session.access_token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        if let body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        if let idempotencyKey { request.setValue(idempotencyKey, forHTTPHeaderField: "Idempotency-Key") }
         let (data, response) = try await transport.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw ClientError.message("El servidor no respondió.") }
         guard (200..<300).contains(http.statusCode) else {
@@ -164,8 +206,10 @@ actor APIClient {
                 await auth.signOut()
                 throw ClientError.message("Tu sesión no está activa. Vuelve a ingresar.")
             }
-            let message = (try? JSONDecoder().decode(APIErrorEnvelope.self, from: data))?.text
-            throw ClientError.message(message ?? "No se pudo consultar la información. Vuelve a intentar.")
+            switch ProblemMapper.failure(status: http.statusCode, body: data, fallback: failure) {
+            case .versionConflict(let text): throw ClientError.versionConflict(text)
+            case .rejected(let text): throw ClientError.message(text)
+            }
         }
         return data
     }

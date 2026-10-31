@@ -22,6 +22,15 @@
 		B8B392ACAEADB810AA4BA1A0 /* Network.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9BE9E2F7C488D370496F97 /* Network.swift */; };
 		970994055C4B773E5951CAA2 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0043392664B38352721CCAC1 /* KeychainStore.swift */; };
 		DD4A97391396BC15E4415F3B /* LiveViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F373EB0F8CA80673A2A2FC2 /* LiveViewModel.swift */; };
+		6CA25E7F0A3926621D87DF09 /* OperationsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3625312C59421FA9F90C095 /* OperationsModels.swift */; };
+		86FF7187C0D8D54738F29E92 /* OperationsLabels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D02B96AA0C89FDDDA38E573 /* OperationsLabels.swift */; };
+		5B45559ADDFC74B44D30CFEC /* WriteSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBA3B7BF5D94972985B814F7 /* WriteSupport.swift */; };
+		A6441FB6D7EFB58CC4146A1D /* OperationsRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6694200BB2D036903E7C7513 /* OperationsRules.swift */; };
+		6AF34DDF560E1EDC3EB6BCF1 /* RemoteResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33DD8140459BCB9C672B8A4D /* RemoteResources.swift */; };
+		9689FE19AE8FFD6E07027091 /* OperationsCommon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4EF8659EF7D21B78A66AAA8 /* OperationsCommon.swift */; };
+		3763A809C67B003177597414 /* AmbulanceViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D15960A562DBA0DD238C7B /* AmbulanceViews.swift */; };
+		91C16E4E615A46B6E1FE25D4 /* ShiftPlanningViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF49D585C2DE33615D564EFD /* ShiftPlanningViews.swift */; };
+		1E82F1A337F2A9FC17AD6FC6 /* StaffViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */; };
 		E6257F37331D015E17C0F250 /* Configuration.plist in Resources */ = {isa = PBXBuildFile; fileRef = E133FD5773DBAD41645FDCC5 /* Configuration.plist */; };
 		D36E2EEACD86DDF8126D7EFD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
@@ -43,6 +52,15 @@
 		2E9BE9E2F7C488D370496F97 /* Network.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Network.swift; sourceTree = "<group>"; };
 		0043392664B38352721CCAC1 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		3F373EB0F8CA80673A2A2FC2 /* LiveViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewModel.swift; sourceTree = "<group>"; };
+		B3625312C59421FA9F90C095 /* OperationsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsModels.swift; sourceTree = "<group>"; };
+		5D02B96AA0C89FDDDA38E573 /* OperationsLabels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsLabels.swift; sourceTree = "<group>"; };
+		FBA3B7BF5D94972985B814F7 /* WriteSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WriteSupport.swift; sourceTree = "<group>"; };
+		6694200BB2D036903E7C7513 /* OperationsRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsRules.swift; sourceTree = "<group>"; };
+		33DD8140459BCB9C672B8A4D /* RemoteResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteResources.swift; sourceTree = "<group>"; };
+		B4EF8659EF7D21B78A66AAA8 /* OperationsCommon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationsCommon.swift; sourceTree = "<group>"; };
+		23D15960A562DBA0DD238C7B /* AmbulanceViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbulanceViews.swift; sourceTree = "<group>"; };
+		DF49D585C2DE33615D564EFD /* ShiftPlanningViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShiftPlanningViews.swift; sourceTree = "<group>"; };
+		134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffViews.swift; sourceTree = "<group>"; };
 		E133FD5773DBAD41645FDCC5 /* Configuration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Configuration.plist; sourceTree = "<group>"; };
 		466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -118,6 +136,7 @@
 				3AF9A394DA740BDADF06148C /* Core */,
 				9EC242A4E88F809E71A4239B /* Models */,
 				BE6CF8D6CCA50C6B2F075564 /* Services */,
+				C0FFEE0123456789ABCDEF01 /* Operations */,
 				3B72A5766D2AF0434CB8C3CE /* Shell */,
 				E133FD5773DBAD41645FDCC5 /* Configuration.plist */,
 				466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */,
@@ -146,6 +165,7 @@
 			children = (
 				7FE31F9E75FB8FAF3C74BF34 /* Access.swift */,
 				531AB98A897D3BA846C01B44 /* Realtime */,
+				A1B2C3D4E5F60718293A4B5C /* Operations */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -160,6 +180,29 @@
 				6114D56CED11FE8DD307FA5C /* URLSessionRealtimeSocket.swift */,
 			);
 			path = Realtime;
+			sourceTree = "<group>";
+		};
+		A1B2C3D4E5F60718293A4B5C /* Operations */ = {
+			isa = PBXGroup;
+			children = (
+				B3625312C59421FA9F90C095 /* OperationsModels.swift */,
+				5D02B96AA0C89FDDDA38E573 /* OperationsLabels.swift */,
+				FBA3B7BF5D94972985B814F7 /* WriteSupport.swift */,
+				6694200BB2D036903E7C7513 /* OperationsRules.swift */,
+			);
+			path = Operations;
+			sourceTree = "<group>";
+		};
+		C0FFEE0123456789ABCDEF01 /* Operations */ = {
+			isa = PBXGroup;
+			children = (
+				33DD8140459BCB9C672B8A4D /* RemoteResources.swift */,
+				B4EF8659EF7D21B78A66AAA8 /* OperationsCommon.swift */,
+				23D15960A562DBA0DD238C7B /* AmbulanceViews.swift */,
+				DF49D585C2DE33615D564EFD /* ShiftPlanningViews.swift */,
+				134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */,
+			);
+			path = Operations;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -248,6 +291,15 @@
 				B8B392ACAEADB810AA4BA1A0 /* Network.swift in Sources */,
 				970994055C4B773E5951CAA2 /* KeychainStore.swift in Sources */,
 				DD4A97391396BC15E4415F3B /* LiveViewModel.swift in Sources */,
+				6CA25E7F0A3926621D87DF09 /* OperationsModels.swift in Sources */,
+				86FF7187C0D8D54738F29E92 /* OperationsLabels.swift in Sources */,
+				5B45559ADDFC74B44D30CFEC /* WriteSupport.swift in Sources */,
+				A6441FB6D7EFB58CC4146A1D /* OperationsRules.swift in Sources */,
+				6AF34DDF560E1EDC3EB6BCF1 /* RemoteResources.swift in Sources */,
+				9689FE19AE8FFD6E07027091 /* OperationsCommon.swift in Sources */,
+				3763A809C67B003177597414 /* AmbulanceViews.swift in Sources */,
+				91C16E4E615A46B6E1FE25D4 /* ShiftPlanningViews.swift in Sources */,
+				1E82F1A337F2A9FC17AD6FC6 /* StaffViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

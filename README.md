@@ -22,12 +22,17 @@ El diseño visual (Theme, pantallas de acceso y shell con barra inferior) es el 
 | Perfil, roles, permisos y plataformas | `GET /auth/me` |
 | Pestañas por rol y permisos | `TabPolicy` (`Climesa/Core/Logic/Access.swift`) |
 | Mis turnos (Médico) | `GET /turnos/mios`, se vuelve a pedir solo al entrar y cuando llega un evento de turnos |
+| Escrituras (POST y PATCH) | `APIClient` envía JSON con `Idempotency-Key` (se reutiliza al reintentar), lee `application/problem+json` y distingue el 409 `version_conflicto` |
+| Ambulancia (`ambulancia.ver_estado`) | `GET /ambulancia`; con `ambulancia.mantenimiento` y sin servicio activo, `POST /ambulancia/mantenimiento` `{version,inMaintenance,reason}` (motivo de 10 a 500 caracteres; salir exige paramédico con turno) |
+| Planificación de turnos (`turnos.ver`) | `GET /turnos`; publicar con `turnos.publicar` (`POST /turnos/publicar`, muestra los huecos de cobertura) y cancelar con `turnos.planificar` (`PATCH /turnos/{id}` con `state`, `version` y `reason`) |
+| Personal (`personal.ver`) | `GET /personal`: directorio con búsqueda y ficha (función en español, inscripciones y próximos turnos si hay `turnos.ver`) |
 | Cambios en vivo | Supabase Realtime (WebSocket) + una consulta de recuperación `GET /eventos?after=` tras una caída. Sin sondeo periódico |
 | Banda de conexión | "Reconectando…" / "Sin conexión" según el estado del tiempo real |
 | Cierre por inactividad | Más de 5 minutos en segundo plano cierra la sesión (`ClimesaApp.swift`) |
 
 Médico ve: Mi día, Pacientes, Resultados, Turnos, Perfil. Paciente ve: Inicio, Fila, Citas, Exámenes, Más. Cada pestaña con datos exige un permiso del catálogo (`pacientes.buscar`, `turnos.ver`, `fila.ver`, `citas.ver`, `resultados.ver`); sin él no aparece. La app no se une al canal `publico` de tiempo real.
 Solo **Turnos** y **Perfil/Más** tienen datos; el resto muestra "Este módulo todavía no está habilitado".
+En **Perfil/Más** aparece la lista "Gestión" con Ambulancia, Planificación de turnos y Personal; cada sección sale del permiso de lectura del catálogo (`TabPolicy.sections`) y, sin el permiso de la acción, queda de solo lectura. Nada se decide por el nombre de un rol.
 Cualquier otro rol (por ejemplo Recepción) ve "Tu rol no usa esta aplicación" y solo puede cerrar sesión.
 
 El registro desde la app crea una cuenta de paciente; si el proyecto exige confirmar el correo, se avisa y la persona
@@ -55,9 +60,11 @@ Nunca pongas contraseñas ni claves secretas en el repositorio.
 
 ## Pruebas
 
-Hay 99 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
+Hay 173 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
 
 - `AccessTests`, `TabPolicyTests`: roles, permisos, pestañas por rol y su orden, decodificación del perfil de `/auth/me`.
+- `OperationsRulesTests`: secciones por permiso, mantenimiento de ambulancia, cancelar y publicar turnos, rango de fechas, directorio de personal, etiquetas en español y fechas en hora de El Salvador.
+- `WriteSupportTests`: mapeo de errores `problem+json` (409 de versión) y claves de idempotencia.
 - `RegistrationRulesTests`: nombre, correo, contraseña y confirmación, con sus límites.
 - `RealtimeProtocolTests`, `RealtimeProtocolEdgeTests`: armado y lectura de marcos Phoenix, texto malformado, respuestas de error, recuperación de eventos.
 - `SupabaseRealtimeServiceTests`: servicio de tiempo real con un socket de prueba (uniones, latido con respuesta y reconexión si no llega, renovación del token con `access_token`, canales rechazados 3 veces seguidas que se dejan fuera con un aviso no fatal, reconexión con espera creciente hasta 30 s, recuperación paginada, token nuevo por conexión).
@@ -76,6 +83,8 @@ Climesa/
   Shell/ShellViews.swift               pestañas por rol, turnos, cuenta, banda de conexión
   Core/Theme.swift                     diseño del equipo de iOS
   Core/Logic/Access.swift              perfil, TabPolicy, reglas de registro (puro, con pruebas)
+  Core/Logic/Operations/               modelos, reglas, etiquetas, errores e idempotencia de ambulancia, turnos y personal (puro, con pruebas)
+  Operations/                          vistas y view models de Ambulancia, Planificación de turnos y Personal
   Core/Logic/Realtime/                 protocolo Phoenix, servicio de tiempo real, estado en vivo (puro, con pruebas)
   Services/Network.swift               configuración, AuthService, APIClient
   Services/KeychainStore.swift         sesión en el Keychain
