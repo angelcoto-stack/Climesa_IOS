@@ -34,6 +34,8 @@ public enum StaffLabels {
 
     /// Función del personal (`type` de la API): `medico` se muestra como "Médico".
     public static func function(_ code: String) -> String { functions[code] ?? code }
+    /// Códigos de función que se pueden elegir al registrar o editar personal (orden alfabético por código).
+    public static var functionCodes: [String] { functions.keys.sorted() }
     public static func shiftState(_ code: String) -> String { shiftStates[code] ?? code }
     public static func shiftType(_ code: String) -> String { shiftTypes[code] ?? code }
     public static func coverageRole(_ code: String) -> String { coverageRoles[code] ?? code }

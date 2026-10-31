@@ -86,8 +86,32 @@ struct ShellRoot: View {
     @ViewBuilder
     private func content(for tab: AppTab) -> some View {
         switch tab {
-        case .miDia, .inicio:
+        case .inicio:
             ShellHomeView(user: user, area: area, tabs: tabs) { self.tab = $0 }
+        case .miDia:
+            NavigationStack {
+                MockMiDiaView(user: user)
+            }
+        case .resultados:
+            NavigationStack {
+                MockOrdersView()
+            }
+        case .fila:
+            NavigationStack {
+                MockFilaView()
+            }
+        case .citas:
+            NavigationStack {
+                MockCitasView(user: user)
+            }
+        case .examenes:
+            NavigationStack {
+                MockExamenesView()
+            }
+        case .pacientes:
+            NavigationStack {
+                PatientsView(user: user, api: api)
+            }
         case .turnos:
             MyShiftsView(model: shifts, shiftsVersion: live.snapshot.shiftsVersion)
         case .perfil, .mas:
@@ -96,8 +120,6 @@ struct ShellRoot: View {
                             sections: TabPolicy.sections(for: user.access),
                             api: api, liveVersion: live.snapshot.version)
             }
-        default:
-            ComingSoonView(label: "\(area.title.uppercased()) / CLIMESA", title: tab.title + ".")
         }
     }
 }
@@ -174,36 +196,6 @@ struct ShellHomeView: View {
             }
             .padding(.top, 4)
         }
-    }
-}
-
-// MARK: - Módulo pendiente · "Este módulo todavía no está habilitado."
-
-struct ComingSoonView: View {
-    let label: String
-    let title: String
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 0) {
-                MonoLabel(text: label).padding(.top, 24)
-                HeadlineText(text: title, size: 30).padding(.top, 14)
-                Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 22)
-                MonoLabel(text: "PRÓXIMA ENTREGA").padding(.top, 20)
-                Text("Este módulo todavía no está habilitado.")
-                    .font(.system(size: 20, weight: .semibold))
-                    .tracking(-0.4)
-                    .lineSpacing(4)
-                    .foregroundColor(Theme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 22)
-                BodyText(text: "Su acceso y navegación ya están definidos para tu rol. Las operaciones se habilitarán en la siguiente entrega.")
-                    .padding(.top, 22)
-            }
-            .padding(.horizontal, 24)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .background(Theme.background)
     }
 }
 
@@ -361,6 +353,26 @@ struct AccountView: View {
                 }
                 .padding(8)
                 .background(Color(hex: 0xEFEDE8))
+            }
+
+            if area == .pac {
+                SectionTitle(text: "Mi atención")
+                if FlowVisibility.showsMedicalHistory(user.access) {
+                    NavigationLink {
+                        MockHistorialView()
+                    } label: {
+                        MockRow(title: "Mi historial", detail: "Consultas pasadas y recetas (maqueta)")
+                    }
+                    .buttonStyle(.plain)
+                }
+                if FlowVisibility.showsAmbulanceRequest(user.access) {
+                    NavigationLink {
+                        MockAmbulanciaView()
+                    } label: {
+                        MockRow(title: "Solicitar ambulancia", detail: "Pedido y seguimiento (maqueta)")
+                    }
+                    .buttonStyle(.plain)
+                }
             }
 
             if !sections.isEmpty {

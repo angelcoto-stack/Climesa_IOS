@@ -31,7 +31,7 @@ El diseño visual (Theme, pantallas de acceso y shell con barra inferior) es el 
 | Cierre por inactividad | Más de 5 minutos en segundo plano cierra la sesión (`ClimesaApp.swift`) |
 
 Médico ve: Mi día, Pacientes, Resultados, Turnos, Perfil. Paciente ve: Inicio, Fila, Citas, Exámenes, Más. Cada pestaña con datos exige un permiso del catálogo (`pacientes.buscar`, `turnos.ver`, `fila.ver`, `citas.ver`, `resultados.ver`); sin él no aparece. La app no se une al canal `publico` de tiempo real.
-Solo **Turnos** y **Perfil/Más** tienen datos; el resto muestra "Este módulo todavía no está habilitado".
+Tienen datos reales **Turnos**, **Perfil/Más**, **Pacientes** (búsqueda, alta, ficha, corrección e inactivación con permisos `pacientes.*`) y **Personal** (alta, edición e inactivación con `personal.gestionar`). El resto de pestañas de médico y paciente son **maquetas navegables** con datos ficticios (`Climesa/Operations/MockFlowViews.swift`): no llaman a la API y no guardan nada.
 En **Perfil/Más** aparece la lista "Gestión" con Ambulancia, Planificación de turnos y Personal; cada sección sale del permiso de lectura del catálogo (`TabPolicy.sections`) y, sin el permiso de la acción, queda de solo lectura. Nada se decide por el nombre de un rol.
 Cualquier otro rol (por ejemplo Recepción) ve "Tu rol no usa esta aplicación" y solo puede cerrar sesión.
 
@@ -60,7 +60,7 @@ Nunca pongas contraseñas ni claves secretas en el repositorio.
 
 ## Pruebas
 
-Hay 173 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
+Hay 204 pruebas XCTest en `Tests/CoreTests` (`swift test` en la raíz del repositorio, macOS; el CI de GitHub Actions en macos-15 las ejecuta en cada PR). Cubren solo lógica pura, sin red ni UI, con datos ficticios:
 
 - `AccessTests`, `TabPolicyTests`: roles, permisos, pestañas por rol y su orden, decodificación del perfil de `/auth/me`.
 - `OperationsRulesTests`: secciones por permiso, mantenimiento de ambulancia, cancelar y publicar turnos, rango de fechas, directorio de personal, etiquetas en español y fechas en hora de El Salvador.
@@ -84,7 +84,7 @@ Climesa/
   Core/Theme.swift                     diseño del equipo de iOS
   Core/Logic/Access.swift              perfil, TabPolicy, reglas de registro (puro, con pruebas)
   Core/Logic/Operations/               modelos, reglas, etiquetas, errores e idempotencia de ambulancia, turnos y personal (puro, con pruebas)
-  Operations/                          vistas y view models de Ambulancia, Planificación de turnos y Personal
+  Operations/                          vistas de Ambulancia, Planificación de turnos, Personal, Pacientes y maquetas de flujos
   Core/Logic/Realtime/                 protocolo Phoenix, servicio de tiempo real, estado en vivo (puro, con pruebas)
   Services/Network.swift               configuración, AuthService, APIClient
   Services/KeychainStore.swift         sesión en el Keychain
