@@ -88,6 +88,10 @@ struct ShellRoot: View {
         switch tab {
         case .miDia, .inicio:
             ShellHomeView(user: user, area: area, tabs: tabs) { self.tab = $0 }
+        case .pacientes:
+            NavigationStack {
+                PatientsView(user: user, api: api)
+            }
         case .turnos:
             MyShiftsView(model: shifts, shiftsVersion: live.snapshot.shiftsVersion)
         case .perfil, .mas:

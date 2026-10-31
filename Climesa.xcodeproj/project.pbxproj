@@ -33,6 +33,8 @@
 		1E82F1A337F2A9FC17AD6FC6 /* StaffViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */; };
 		E6257F37331D015E17C0F250 /* Configuration.plist in Resources */ = {isa = PBXBuildFile; fileRef = E133FD5773DBAD41645FDCC5 /* Configuration.plist */; };
 		D36E2EEACD86DDF8126D7EFD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */; };
+		47DC280DDD0B40DB8537F799 /* PatientRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D72339ED1A4048B959387F /* PatientRules.swift */; };
+		310DA20B682D4C288D90E0F3 /* PatientViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C960DC10E6BA421CAA6B6C12 /* PatientViews.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -63,6 +65,8 @@
 		134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffViews.swift; sourceTree = "<group>"; };
 		E133FD5773DBAD41645FDCC5 /* Configuration.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Configuration.plist; sourceTree = "<group>"; };
 		466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		90D72339ED1A4048B959387F /* PatientRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientRules.swift; sourceTree = "<group>"; };
+		C960DC10E6BA421CAA6B6C12 /* PatientViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientViews.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +170,7 @@
 				7FE31F9E75FB8FAF3C74BF34 /* Access.swift */,
 				531AB98A897D3BA846C01B44 /* Realtime */,
 				A1B2C3D4E5F60718293A4B5C /* Operations */,
+				18032A154204446AACDC9486 /* Patients */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -201,8 +206,17 @@
 				23D15960A562DBA0DD238C7B /* AmbulanceViews.swift */,
 				DF49D585C2DE33615D564EFD /* ShiftPlanningViews.swift */,
 				134AFA0EF60C97FDEE71DBDE /* StaffViews.swift */,
+				C960DC10E6BA421CAA6B6C12 /* PatientViews.swift */,
 			);
 			path = Operations;
+			sourceTree = "<group>";
+		};
+		18032A154204446AACDC9486 /* Patients */ = {
+			isa = PBXGroup;
+			children = (
+				90D72339ED1A4048B959387F /* PatientRules.swift */,
+			);
+			path = Patients;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -300,6 +314,8 @@
 				3763A809C67B003177597414 /* AmbulanceViews.swift in Sources */,
 				91C16E4E615A46B6E1FE25D4 /* ShiftPlanningViews.swift in Sources */,
 				1E82F1A337F2A9FC17AD6FC6 /* StaffViews.swift in Sources */,
+				47DC280DDD0B40DB8537F799 /* PatientRules.swift in Sources */,
+				310DA20B682D4C288D90E0F3 /* PatientViews.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
