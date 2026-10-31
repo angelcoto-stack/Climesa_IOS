@@ -39,6 +39,12 @@ public enum RealtimeProtocol {
         frame(topic: "phoenix", event: "heartbeat", payload: [String: Any](), ref: ref, joinRef: nil)
     }
 
+    /// Renueva el token en un canal ya unido (evento `access_token` de Phoenix).
+    public static func accessToken(channel: String, ref: String, accessToken: String) -> String {
+        let payload: [String: Any] = ["access_token": accessToken]
+        return frame(topic: topic(channel), event: "access_token", payload: payload, ref: ref, joinRef: nil)
+    }
+
     private static func frame(topic: String, event: String, payload: [String: Any], ref: String, joinRef: String?) -> String {
         var object: [String: Any] = ["topic": topic, "event": event, "payload": payload, "ref": ref]
         if let joinRef { object["join_ref"] = joinRef }
@@ -50,8 +56,14 @@ public enum RealtimeProtocol {
     public static func parse(_ text: String) -> RealtimeFrame {
         guard let data = text.data(using: .utf8),
               let root = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-              let topic = root["topic"] as? String,
-              topic.hasPrefix(prefix) else { return .ignored }
+              let topic = root["topic"] as? String else { return .ignored }
+        if topic == "phoenix" {
+            let heartbeatRef = stringValue(root["ref"]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let isReply = (root["event"] as? String) == "phx_reply"
+            if isReply && !heartbeatRef.isEmpty && heartbeatRef != "null" { return .heartbeatReply(ref: heartbeatRef) }
+            return .ignored
+        }
+        guard topic.hasPrefix(prefix) else { return .ignored }
         let channel = String(topic.dropFirst(prefix.count))
         let payload = root["payload"] as? [String: Any]
         switch (root["event"] as? String) ?? "" {

@@ -78,6 +78,7 @@ final class SupabaseRealtimeServiceTests: XCTestCase {
         log: CatchUpLog,
         token: String? = "token-ejemplo",
         heartbeat: TimeInterval = 1_000,
+        heartbeatTimeout: TimeInterval = 10,
         head: (@Sendable () async throws -> String)? = nil
     ) -> SupabaseRealtimeService {
         let recovered = self.recovered
@@ -91,6 +92,7 @@ final class SupabaseRealtimeServiceTests: XCTestCase {
             head: head,
             sockets: factory,
             heartbeatInterval: heartbeat,
+            heartbeatTimeout: heartbeatTimeout,
             backoff: { _ in 0.01 }
         )
     }
@@ -380,7 +382,7 @@ final class SupabaseRealtimeServiceTests: XCTestCase {
         XCTAssertEqual(cursors, ["7"])
     }
 
-    func testUnCanalRechazadoCierraElSocketYForzaUnaReconexion() async throws {
+    func testUnCanalRechazadoUnaVezCierraElSocketYReconectaSinDejarloFuera() async throws {
         let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
         let consumer = consume(makeService(factory, log: log), into: recorder)
         defer { consumer.cancel() }
@@ -394,6 +396,196 @@ final class SupabaseRealtimeServiceTests: XCTestCase {
         let signals = await recorder.signals
         XCTAssertFalse(signals.contains(RealtimeSignal.resync), "con un canal rechazado no se completa la union")
         XCTAssertFalse(signals.contains(RealtimeSignal.state(.live)))
+        XCTAssertFalse(signals.contains(RealtimeSignal.channelsDropped(["rol:ENF"])), "un solo rechazo no deja el canal fuera")
+    }
+
+    // MARK: - Latido con respuesta, token renovado y canales rechazados
+
+    private func rejected(_ channel: String) -> String {
+        #"{"topic":"realtime:\#(channel)","event":"phx_reply","payload":{"status":"error"},"ref":"2"}"#
+    }
+
+    /// Referencia del primer latido enviado por el socket, si ya se envió.
+    private func firstHeartbeatRef(_ socket: FakeSocket) -> String? {
+        for text in socket.sent where text.contains("\"heartbeat\"") {
+            guard let data = text.data(using: .utf8),
+                  let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] else { continue }
+            if let ref = object["ref"] as? String { return ref }
+        }
+        return nil
+    }
+
+    func testUnLatidoSinRespuestaDaElSocketPorCaidoYReconecta() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log, heartbeat: 0.02, heartbeatTimeout: 0.05), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir un segundo socket por el latido sin respuesta") { factory.sockets.count >= 2 }
+        XCTAssertEqual(factory.sockets.first?.isClosed, true)
+    }
+
+    func testUnLatidoConRespuestaMantieneElSocket() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log, heartbeat: 0.05, heartbeatTimeout: 1), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el socket") { factory.sockets.count == 1 }
+        let socket = try XCTUnwrap(factory.sockets.first)
+        await eventually("debe enviar un latido") { self.firstHeartbeatRef(socket) != nil }
+        let ref = try XCTUnwrap(firstHeartbeatRef(socket))
+        socket.push(.text(#"{"topic":"phoenix","event":"phx_reply","payload":{"status":"ok"},"ref":"\#(ref)"}"#))
+        try await Task.sleep(nanoseconds: 300_000_000)
+        XCTAssertEqual(factory.sockets.count, 1, "con respuesta al latido no se reconecta")
+        XCTAssertFalse(socket.isClosed)
+    }
+
+    func testSiCambiaElTokenEnviaAccessTokenATodosLosCanalesUnidos() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder()
+        let tokens = TokenSource()
+        let service = SupabaseRealtimeService(
+            websocketURL: "wss://ejemplo.test/socket",
+            accessToken: { () async -> String? in await tokens.next() },
+            catchUp: { _ in CatchUp(cursor: "0", events: []) },
+            sockets: factory,
+            heartbeatInterval: 0.05,
+            heartbeatTimeout: 10,
+            backoff: { _ in 0.01 }
+        )
+        let consumer = consume(service, into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el socket") { factory.sockets.count == 1 }
+        let socket = try XCTUnwrap(factory.sockets.first)
+        joinAll(socket)
+        await eventually("debe quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        await eventually("debe renovar el token en cada canal unido") {
+            let renewals = socket.sent.filter { $0.contains("\"event\":\"access_token\"") }
+            return renewals.contains { $0.contains("realtime:publico") } && renewals.contains { $0.contains("realtime:rol:ENF") }
+        }
+    }
+
+    func testSiElTokenNoCambiaNoEnviaAccessToken() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log, heartbeat: 0.02), into: recorder)
+        defer { consumer.cancel() }
+
+        await eventually("debe abrir el socket") { factory.sockets.count == 1 }
+        let socket = try XCTUnwrap(factory.sockets.first)
+        joinAll(socket)
+        await eventually("debe enviar al menos un latido") { self.firstHeartbeatRef(socket) != nil }
+        let renewals = socket.sent.filter { $0.contains("\"event\":\"access_token\"") }
+        XCTAssertTrue(renewals.isEmpty)
+    }
+
+    func testTresRechazosSeguidosDejanElCanalFueraYElRestoQuedaEnVivo() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        for index in 0..<3 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            let socket = factory.sockets[index]
+            socket.push(.text(joined("publico")))
+            socket.push(.text(rejected("rol:ENF")))
+        }
+        await eventually("debe avisar del canal dejado fuera") { await recorder.signals.contains(RealtimeSignal.channelsDropped(["rol:ENF"])) }
+        await eventually("debe quedar en vivo con el resto") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        let signals = await recorder.signals
+        XCTAssertTrue(signals.contains(RealtimeSignal.resync))
+        XCTAssertEqual(factory.sockets.count, 3, "el tercer socket sigue abierto")
+    }
+
+    func testElContadorDeRechazosSeReiniciaTrasUnaUnionExitosa() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        // Dos rechazos, luego una union completa (reinicia la cuenta) y la caida del socket.
+        for index in 0..<2 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            factory.sockets[index].push(.text(rejected("rol:ENF")))
+        }
+        await eventually("debe abrir el tercer socket") { factory.sockets.count == 3 }
+        let third = factory.sockets[2]
+        joinAll(third)
+        await eventually("debe quedar en vivo") { await recorder.signals.last == RealtimeSignal.state(.live) }
+        third.push(.closed("red"))
+
+        // Dos rechazos mas: sin reinicio serian el tercero y el canal quedaria fuera.
+        for index in 3..<5 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            factory.sockets[index].push(.text(rejected("rol:ENF")))
+        }
+        await eventually("debe abrir el sexto socket") { factory.sockets.count == 6 }
+        let signals = await recorder.signals
+        XCTAssertFalse(signals.contains(RealtimeSignal.channelsDropped(["rol:ENF"])))
+    }
+
+    func testUnRechazoEnUnCanalYaUnidoReconectaSinContarlo() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        for index in 0..<3 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            let socket = factory.sockets[index]
+            joinAll(socket)
+            await eventually("debe quedar en vivo en el socket \(index + 1)") { await recorder.signals.last == RealtimeSignal.state(.live) }
+            socket.push(.text(rejected("rol:ENF")))
+        }
+        await eventually("debe abrir un cuarto socket") { factory.sockets.count == 4 }
+        let signals = await recorder.signals
+        XCTAssertEqual(droppedWarnings(in: signals), 0, "un rechazo en un canal ya unido no cuenta")
+    }
+
+    private func droppedWarnings(in signals: [RealtimeSignal]) -> Int {
+        var total = 0
+        for signal in signals {
+            if case .channelsDropped = signal { total += 1 }
+        }
+        return total
+    }
+
+    func testSiTodosLosCanalesSeRechazanTresVecesNoSeReintenta() async throws {
+        let factory = FakeSocketFactory(), recorder = SignalRecorder(), log = CatchUpLog()
+        let consumer = consume(makeService(factory, log: log), into: recorder)
+        defer { consumer.cancel() }
+
+        for index in 0..<3 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            factory.sockets[index].push(.text(rejected("publico")))
+        }
+        // El tercer socket sigue abierto: ahora se rechaza el otro canal tres veces.
+        factory.sockets[2].push(.text(rejected("rol:ENF")))
+        for index in 3..<5 {
+            await eventually("debe abrir el socket \(index + 1)") { factory.sockets.count == index + 1 }
+            factory.sockets[index].push(.text(rejected("rol:ENF")))
+        }
+        await eventually("debe avisar de los dos canales") { await recorder.signals.contains(RealtimeSignal.channelsDropped(["publico", "rol:ENF"])) }
+        try await Task.sleep(nanoseconds: 200_000_000)
+        XCTAssertEqual(factory.sockets.count, 5, "sin canales no se abren mas sockets")
+        let signals = await recorder.signals
+        XCTAssertFalse(signals.contains(RealtimeSignal.state(.live)))
+    }
+
+    func testElProtocoloArmaElAccessTokenYReconoceLaRespuestaAlLatido() throws {
+        let text = RealtimeProtocol.accessToken(channel: "rol:ENF", ref: "7", accessToken: "token-ejemplo")
+        let object = try XCTUnwrap((try? JSONSerialization.jsonObject(with: Data(text.utf8))) as? [String: Any])
+        XCTAssertEqual(object["topic"] as? String, "realtime:rol:ENF")
+        XCTAssertEqual(object["event"] as? String, "access_token")
+        XCTAssertEqual(object["ref"] as? String, "7")
+        XCTAssertEqual((object["payload"] as? [String: Any])?["access_token"] as? String, "token-ejemplo")
+        XCTAssertEqual(
+            RealtimeProtocol.parse(#"{"topic":"phoenix","event":"phx_reply","payload":{"status":"ok"},"ref":"5"}"#),
+            RealtimeFrame.heartbeatReply(ref: "5")
+        )
+    }
+
+    func testElAvisoDeCanalesDejadosFueraQuedaEnElEstadoEnVivo() {
+        let next = LiveReducer.apply(.channelsDropped(["rol:ENF"]), to: LiveSnapshot(connection: .live))
+        XCTAssertEqual(next.droppedChannels, ["rol:ENF"])
+        XCTAssertEqual(next.connection, .live)
+        XCTAssertTrue(LiveSnapshot().droppedChannels.isEmpty)
     }
 
     func testIgnoraMarcosMalformadosDesconocidosYAcusesDeLatido() async throws {

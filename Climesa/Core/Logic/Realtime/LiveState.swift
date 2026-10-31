@@ -18,8 +18,11 @@ public struct LiveSnapshot: Equatable, Sendable {
     public var version: Int
     public var shiftsVersion: Int
     public var profileVersion: Int
-    public init(connection: ConnectionState = .reconnecting, version: Int = 0, shiftsVersion: Int = 0, profileVersion: Int = 0) {
+    /// Canales que el servidor rechazó varias veces y se dejaron fuera (aviso no fatal; el resto sigue en vivo).
+    public var droppedChannels: Set<String>
+    public init(connection: ConnectionState = .reconnecting, version: Int = 0, shiftsVersion: Int = 0, profileVersion: Int = 0, droppedChannels: Set<String> = []) {
         self.connection = connection; self.version = version; self.shiftsVersion = shiftsVersion; self.profileVersion = profileVersion
+        self.droppedChannels = droppedChannels
     }
 }
 
@@ -29,6 +32,8 @@ public enum LiveReducer {
         switch signal {
         case .state(let state):
             next.connection = state
+        case .channelsDropped(let channels):
+            next.droppedChannels = channels
         case .resync:
             next.version += 1
             next.shiftsVersion += 1

@@ -21,6 +21,8 @@ public enum RealtimeSignal: Equatable, Sendable {
     case state(ConnectionState)
     /// Hay que volver a pedir los datos: se suscribieron todos los canales o se recuperó lo perdido tras una caída.
     case resync
+    /// Aviso no fatal: estos canales fueron rechazados varias veces seguidas y se dejaron fuera; el resto sigue en vivo.
+    case channelsDropped(Set<String>)
 }
 
 /// Respuesta de `GET /eventos?after=<seq>`.
@@ -34,6 +36,8 @@ public enum RealtimeFrame: Equatable, Sendable {
     case joinReply(channel: String, ok: Bool)
     case broadcast(channel: String, event: DomainEvent)
     case channelClosed(channel: String)
+    /// Respuesta (`phx_reply`) al latido del protocolo, en el tema `phoenix`.
+    case heartbeatReply(ref: String)
     case ignored
 }
 
