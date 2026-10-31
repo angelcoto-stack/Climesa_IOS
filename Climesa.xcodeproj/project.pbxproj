@@ -35,6 +35,7 @@
 		D36E2EEACD86DDF8126D7EFD /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */; };
 		47DC280DDD0B40DB8537F799 /* PatientRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90D72339ED1A4048B959387F /* PatientRules.swift */; };
 		310DA20B682D4C288D90E0F3 /* PatientViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = C960DC10E6BA421CAA6B6C12 /* PatientViews.swift */; };
+		CC6E3E5D5A104AFC9AA43FF8 /* StaffWriteRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95FF909BA56423FB89C3655 /* StaffWriteRules.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -67,6 +68,7 @@
 		466CEE3F77B2B91C3836C2D3 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		90D72339ED1A4048B959387F /* PatientRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientRules.swift; sourceTree = "<group>"; };
 		C960DC10E6BA421CAA6B6C12 /* PatientViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatientViews.swift; sourceTree = "<group>"; };
+		A95FF909BA56423FB89C3655 /* StaffWriteRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffWriteRules.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -194,6 +196,7 @@
 				5D02B96AA0C89FDDDA38E573 /* OperationsLabels.swift */,
 				FBA3B7BF5D94972985B814F7 /* WriteSupport.swift */,
 				6694200BB2D036903E7C7513 /* OperationsRules.swift */,
+				A95FF909BA56423FB89C3655 /* StaffWriteRules.swift */,
 			);
 			path = Operations;
 			sourceTree = "<group>";
@@ -314,6 +317,7 @@
 				3763A809C67B003177597414 /* AmbulanceViews.swift in Sources */,
 				91C16E4E615A46B6E1FE25D4 /* ShiftPlanningViews.swift in Sources */,
 				1E82F1A337F2A9FC17AD6FC6 /* StaffViews.swift in Sources */,
+				CC6E3E5D5A104AFC9AA43FF8 /* StaffWriteRules.swift in Sources */,
 				47DC280DDD0B40DB8537F799 /* PatientRules.swift in Sources */,
 				310DA20B682D4C288D90E0F3 /* PatientViews.swift in Sources */,
 			);
