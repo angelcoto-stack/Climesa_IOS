@@ -8,7 +8,8 @@ final class AccessTests: XCTestCase {
         Permission(code: "pacientes.buscar", context: "todos"),
         Permission(code: "turnos.ver", context: "propio"),
         Permission(code: "fila.ver", context: "todos"),
-        Permission(code: "citas.ver", context: "propio")
+        Permission(code: "citas.ver", context: "propio"),
+        Permission(code: "resultados.ver", context: "relacion")
     ]
 
     func profile(_ roles: [String], _ platforms: [String], _ permissions: [Permission]? = nil, channels: [String] = []) -> AccessProfile {
@@ -28,7 +29,7 @@ final class AccessTests: XCTestCase {
     }
 
     func testPacienteVeSusCincoPestanas() {
-        let permissions = [Permission(code: "sesion.perfil", context: "propio"), Permission(code: "fila.ver", context: "propio"), Permission(code: "citas.ver", context: "propio")]
+        let permissions = [Permission(code: "sesion.perfil", context: "propio"), Permission(code: "fila.ver", context: "propio"), Permission(code: "citas.ver", context: "propio"), Permission(code: "resultados.ver", context: "propio_revisado")]
         let decision = TabPolicy.decide(profile(["PAC"], ["ios"], permissions))
         XCTAssertEqual(decision, .tabs(role: "PAC", tabs: [.inicio, .fila, .citas, .examenes, .mas]))
     }
@@ -43,7 +44,7 @@ final class AccessTests: XCTestCase {
 
     func testUnaPestanaSeOcultaSiFaltaSuPermiso() {
         let decision = TabPolicy.decide(profile(["MED"], ["ios"]))
-        XCTAssertEqual(decision, .tabs(role: "MED", tabs: [.miDia, .resultados, .perfil]))
+        XCTAssertEqual(decision, .tabs(role: "MED", tabs: [.miDia, .perfil]))
     }
 
     func testCuentaConDosRolesRespetaElRolPreferidoSoloSiEstaPermitido() {

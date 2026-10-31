@@ -7,7 +7,7 @@ final class TabPolicyTests: XCTestCase {
     private func perm(_ code: String) -> Permission { Permission(code: code, context: "propio") }
 
     private var allPermissions: [Permission] {
-        return ["sesion.perfil", "pacientes.buscar", "turnos.ver", "fila.ver", "citas.ver"].map { perm($0) }
+        return ["sesion.perfil", "pacientes.buscar", "turnos.ver", "fila.ver", "citas.ver", "resultados.ver"].map { perm($0) }
     }
 
     private func profile(_ roles: [String], platforms: [String] = ["ios"], permissions: [Permission]) -> AccessProfile {
@@ -35,27 +35,51 @@ final class TabPolicyTests: XCTestCase {
     func testMedicoSinTurnosVerNoVeLaPestanaTurnos() {
         let permissions: [Permission] = [perm("sesion.perfil"), perm("pacientes.buscar")]
         let decision: AccessDecision = TabPolicy.decide(profile(["MED"], permissions: permissions))
-        let expected: AccessDecision = .tabs(role: "MED", tabs: [.miDia, .pacientes, .resultados, .perfil])
+        let expected: AccessDecision = .tabs(role: "MED", tabs: [.miDia, .pacientes, .perfil])
         XCTAssertEqual(decision, expected)
     }
 
     func testMedicoSinBuscarPacientesNoVeLaPestanaPacientes() {
         let permissions: [Permission] = [perm("sesion.perfil"), perm("turnos.ver")]
         let decision: AccessDecision = TabPolicy.decide(profile(["MED"], permissions: permissions))
-        let expected: AccessDecision = .tabs(role: "MED", tabs: [.miDia, .resultados, .turnos, .perfil])
+        let expected: AccessDecision = .tabs(role: "MED", tabs: [.miDia, .turnos, .perfil])
         XCTAssertEqual(decision, expected)
     }
 
-    func testPacienteSinFilaNiCitasSoloVeInicioExamenesYMas() {
+    func testPacienteSinFilaNiCitasNiResultadosSoloVeInicioYMas() {
         let decision: AccessDecision = TabPolicy.decide(profile(["PAC"], permissions: [perm("sesion.perfil")]))
+        let expected: AccessDecision = .tabs(role: "PAC", tabs: [.inicio, .mas])
+        XCTAssertEqual(decision, expected)
+    }
+
+    func testPacienteConResultadosVerVeExamenes() {
+        let permissions: [Permission] = [perm("sesion.perfil"), perm("resultados.ver")]
+        let decision: AccessDecision = TabPolicy.decide(profile(["PAC"], permissions: permissions))
         let expected: AccessDecision = .tabs(role: "PAC", tabs: [.inicio, .examenes, .mas])
         XCTAssertEqual(decision, expected)
+    }
+
+    func testMedicoSinResultadosVerNoVeLaPestanaResultados() {
+        let permissions: [Permission] = [perm("sesion.perfil"), perm("pacientes.buscar"), perm("turnos.ver")]
+        let decision: AccessDecision = TabPolicy.decide(profile(["MED"], permissions: permissions))
+        let expected: AccessDecision = .tabs(role: "MED", tabs: [.miDia, .pacientes, .turnos, .perfil])
+        XCTAssertEqual(decision, expected)
+    }
+
+    func testCadaPestanaConPermisoCoincideConElCatalogo() {
+        let esperado: [AppTab: String] = [
+            .pacientes: "pacientes.buscar", .turnos: "turnos.ver", .fila: "fila.ver",
+            .citas: "citas.ver", .resultados: "resultados.ver", .examenes: "resultados.ver"
+        ]
+        for tab in AppTab.allCases {
+            XCTAssertEqual(tab.requiredPermission, esperado[tab], "permiso de \(tab.rawValue)")
+        }
     }
 
     func testPacienteSinFilaVerConservaCitas() {
         let permissions: [Permission] = [perm("sesion.perfil"), perm("citas.ver")]
         let decision: AccessDecision = TabPolicy.decide(profile(["PAC"], permissions: permissions))
-        let expected: AccessDecision = .tabs(role: "PAC", tabs: [.inicio, .citas, .examenes, .mas])
+        let expected: AccessDecision = .tabs(role: "PAC", tabs: [.inicio, .citas, .mas])
         XCTAssertEqual(decision, expected)
     }
 

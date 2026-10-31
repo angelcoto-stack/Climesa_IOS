@@ -8,12 +8,13 @@ final class LiveViewModel: ObservableObject {
 
     /// Se llama desde `.task {}`: termina cuando SwiftUI cancela la tarea, y eso cierra la conexión.
     func run(service: (any RealtimeService)?, channels: [String]) async {
-        guard let service, !channels.isEmpty else {
+        let needed = RealtimeProtocol.subscribableChannels(channels)
+        guard let service, !needed.isEmpty else {
             snapshot.connection = .offline
             return
         }
         snapshot = LiveSnapshot()
-        for await signal in service.observe(channels: channels) {
+        for await signal in service.observe(channels: needed) {
             snapshot = LiveReducer.apply(signal, to: snapshot)
         }
     }

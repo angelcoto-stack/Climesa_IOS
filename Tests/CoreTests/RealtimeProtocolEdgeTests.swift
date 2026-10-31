@@ -82,6 +82,12 @@ final class RealtimeProtocolEdgeTests: XCTestCase {
         )
     }
 
+    func testLaAppNoSeUneAlCanalPublicoNiRepiteCanales() {
+        XCTAssertEqual(RealtimeProtocol.subscribableChannels(["publico", "usuario:u1", "rol:MED", "usuario:u1"]), ["usuario:u1", "rol:MED"])
+        XCTAssertEqual(RealtimeProtocol.subscribableChannels(["publico"]), [])
+        XCTAssertEqual(RealtimeProtocol.subscribableChannels([]), [])
+    }
+
     func testElMarcoDeUnionDelCanalPublicoNoEsPrivadoYLlevaConfiguracionBase() throws {
         let marco = try object(RealtimeProtocol.join(channel: "publico", ref: "3", accessToken: "token-ejemplo"))
         XCTAssertEqual(marco["topic"] as? String, "realtime:publico")

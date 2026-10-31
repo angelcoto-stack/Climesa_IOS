@@ -73,6 +73,7 @@ public enum AppTab: String, Equatable, Hashable, Sendable, CaseIterable {
         case .turnos: return "turnos.ver"
         case .fila: return "fila.ver"
         case .citas: return "citas.ver"
+        case .resultados, .examenes: return "resultados.ver"
         default: return nil
         }
     }
