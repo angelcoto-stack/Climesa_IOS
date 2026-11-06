@@ -428,20 +428,77 @@ struct MockVinculacionView: View {
     }
 }
 
-/// Información pública del hospital: ocupación general, médicos de turno y avisos. Sin nombres de pacientes.
-struct MockHospitalInfoView: View {
-    var body: some View {
-        ScreenScaffold(label: "MAQUETA / PÚBLICO", title: "Hospital.", titleSize: 30) {
-            MockNotice()
-            SectionTitle(text: "Ocupación general")
-            MockRow(title: "2.ª planta", detail: "8 de 12 camas ocupadas (ficticio)", tag: "Ocupada")
-            MockRow(title: "3.ª planta", detail: "3 de 5 habitaciones VIP ocupadas (ficticio)", tag: "Disponible")
-            SectionTitle(text: "Médicos de turno")
-            MockRow(title: "Dra. Ejemplo Prueba", detail: "Medicina interna · hasta las 18:00")
-            SectionTitle(text: "Avisos")
-            MockRow(title: "Elevador en mantenimiento", detail: "Usa la escalera norte hasta el viernes (ficticio)")
-            BodyText(text: "Información pública: no muestra datos de pacientes.")
+/// Contrato propuesto: GET /hospital/publico. No incluye información personal ni clínica.
+private struct HospitalPublicSnapshot: Decodable {
+    let vipOccupied: Int
+    let sharedBedsOccupied: Int
+    let doctorsOnDuty: [HospitalPublicDoctor]
+    let notices: [String]
+
+    var isValid: Bool {
+        (0...5).contains(vipOccupied) && (0...12).contains(sharedBedsOccupied)
+    }
+}
+
+private struct HospitalPublicDoctor: Decodable, Identifiable {
+    let name: String
+    let specialty: String
+    var id: String { "\(name)|\(specialty)" }
+}
+
+@MainActor
+private final class HospitalPublicModel: ObservableObject {
+    enum Phase {
+        case loading, loaded(HospitalPublicSnapshot), unavailable
+    }
+    @Published var phase: Phase = .loading
+
+    func load(api: APIClient?) async {
+        guard let api else { phase = .unavailable; return }
+        do {
+            let response = try await api.get("/hospital/publico", as: HospitalPublicSnapshot.self)
+            phase = response.isValid ? .loaded(response) : .unavailable
+        } catch {
+            phase = .unavailable
         }
+    }
+}
+
+/// Información pública real, sin nombres ni identificadores de pacientes.
+/// La API debe implementar el contrato documentado en docs/CONTRATOS_BACKEND.md.
+struct HospitalInfoView: View {
+    let api: APIClient?
+    @StateObject private var model = HospitalPublicModel()
+
+    var body: some View {
+        ScreenScaffold(label: "HOSPITAL / PÚBLICO", title: "Hospital.", titleSize: 30,
+                       refresh: { await model.load(api: api) }) {
+            switch model.phase {
+            case .loading:
+                ProgressView("Consultando ocupación…")
+            case .unavailable:
+                Banner(kind: .info, text: "La información pública no está disponible en el servidor. No se muestran datos de ejemplo.")
+                SecondaryButton(title: "Volver a intentar") { Task { await model.load(api: api) } }
+            case .loaded(let data):
+                SectionTitle(text: "Ocupación general")
+                MockRow(title: "2.ª planta · Semiprivadas",
+                        detail: "\(data.sharedBedsOccupied) de 12 camas ocupadas")
+                MockRow(title: "3.ª planta · VIP",
+                        detail: "\(data.vipOccupied) de 5 habitaciones ocupadas")
+                SectionTitle(text: "Médicos de turno")
+                if data.doctorsOnDuty.isEmpty { BodyText(text: "Sin información de médicos de turno.") }
+                ForEach(data.doctorsOnDuty) { doctor in
+                    MockRow(title: doctor.name, detail: doctor.specialty)
+                }
+                SectionTitle(text: "Avisos")
+                if data.notices.isEmpty { BodyText(text: "Sin avisos vigentes.") }
+                ForEach(data.notices, id: \.self) { notice in
+                    MockRow(title: notice, detail: "Aviso general")
+                }
+                BodyText(text: "Solo se presenta información pública; nunca habitaciones asignadas a personas.")
+            }
+        }
+        .task { await model.load(api: api) }
     }
 }
 

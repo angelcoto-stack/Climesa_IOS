@@ -399,9 +399,9 @@ struct AccountView: View {
 
             SectionTitle(text: "Hospital")
             NavigationLink {
-                MockHospitalInfoView()
+                HospitalInfoView(api: api)
             } label: {
-                MockRow(title: "Información del hospital", detail: "Ocupación general y médicos de turno (maqueta)")
+                MockRow(title: "Información del hospital", detail: "Ocupación general, médicos de turno y avisos")
             }
             .buttonStyle(.plain)
 
