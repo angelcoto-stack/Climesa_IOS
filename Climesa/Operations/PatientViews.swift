@@ -14,6 +14,9 @@ struct PatientsView: View {
 
     @State private var query = ""
     @State private var searching = false
+    @State private var searchTask: Task<Void, Never>?
+    @State private var searchID = UUID()
+    @State private var saveNotice: String?
     @State private var searchError: String?
     @State private var outcome: PatientSearchResult?
     @State private var outcomeQuery = ""
@@ -24,6 +27,9 @@ struct PatientsView: View {
             if PatientRules.canSearch(user.access) {
                 if let searchError {
                     Banner(kind: .error, text: searchError)
+                }
+                if let saveNotice {
+                    Banner(kind: .info, text: saveNotice)
                 }
                 PlainField(label: "Nombre, DUI o expediente", text: $query, prompt: "Mínimo 3 caracteres")
                 PrimaryButton(title: searching ? "Buscando…" : "Buscar", isEnabled: !searching) { search() }
@@ -36,13 +42,37 @@ struct PatientsView: View {
         }
         .sheet(isPresented: $registering) {
             if let outcome {
-                PatientFormSheet(mode: .create(search: outcome, query: outcomeQuery), user: user, api: api) {}
+                PatientFormSheet(mode: .create(search: outcome, query: outcomeQuery), user: user, api: api) {
+                    saveNotice = "Paciente registrado. Actualizando coincidencias…"
+                    search()
+                }
             }
         }
+        .onChange(of: query) { _ in
+            // Nunca presentar candidatos ni reutilizar el token de otra búsqueda.
+            invalidateSearch()
+            saveNotice = nil
+        }
+        .onDisappear {
+            searchTask?.cancel()
+            searchID = UUID()
+            searching = false
+        }
+    }
+
+    private func invalidateSearch() {
+        searchTask?.cancel()
+        searchTask = nil
+        searchID = UUID()
+        searching = false
+        outcome = nil
+        outcomeQuery = ""
+        searchError = nil
     }
 
     private func search() {
         guard !searching else { return }
+        invalidateSearch()
         guard let api else {
             searchError = "Falta configurar el servidor de Climesa."
             return
@@ -52,21 +82,33 @@ struct PatientsView: View {
             return
         }
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        Task {
-            searching = true
-            defer { searching = false }
+        let id = searchID
+        searching = true
+        searchTask = Task { @MainActor in
+            defer {
+                if searchID == id {
+                    searching = false
+                    searchTask = nil
+                }
+            }
             do {
                 let result = try await api.post("/pacientes/busquedas", body: PatientSearchRequest(query: text),
                                                 as: PatientSearchResult.self)
+                guard !Task.isCancelled, searchID == id,
+                      PatientRules.searchMatches(query, submittedQuery: text) else { return }
                 outcome = result
                 outcomeQuery = text
                 searchError = nil
+                saveNotice = nil
             } catch is CancellationError {
                 return
-            } catch let error as ClientError {
-                searchError = error.localizedDescription
             } catch {
-                searchError = "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo."
+                guard !Task.isCancelled, searchID == id else { return }
+                if let error = error as? ClientError {
+                    searchError = error.localizedDescription
+                } else {
+                    searchError = "No se pudo buscar. Revisa tu conexión e inténtalo de nuevo."
+                }
             }
         }
     }

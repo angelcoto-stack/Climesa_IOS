@@ -164,6 +164,13 @@ public enum PatientRules {
         return nil
     }
 
+    /// Un resultado remoto solo puede mostrarse si corresponde a la búsqueda que aún aparece en pantalla.
+    public static func searchMatches(_ visibleQuery: String, submittedQuery: String) -> Bool {
+        let visible = visibleQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        let submitted = submittedQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !submitted.isEmpty && visible == submitted
+    }
+
     /// Errores de los datos personales. Lista vacía = formulario válido. DUI, fecha de nacimiento y teléfono son opcionales.
     public static func draftErrors(_ draft: PatientDraft) -> [String] {
         var errors: [String] = []
